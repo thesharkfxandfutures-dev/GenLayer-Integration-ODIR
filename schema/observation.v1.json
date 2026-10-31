@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/thesharkfxandfutures-dev/GenLayer-Integration-ODIR/schema/observation.v1.json",
+  "title": "GenLayer observation v1 (odir-genlayer-observation/1)",
+  "description": "What the configured contract reported for one slice at one instant, from one source. Produced by `genlayer-odir observe`, consumed by `genlayer-odir reconcile`, stored by ODIR and projected by Mission Control as a separate record (never written into DirectorRun.verification_outcome). It carries no authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "observed_at", "source", "raw_sha256", "paused", "predecessor_approved", "task", "latest_attempt", "authority", "assurance"],
+  "properties": {
+    "schema": { "const": "odir-genlayer-observation/1" },
+    "observed_at": { "type": "string", "format": "date-time" },
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "rpc_url", "chain_id", "contract_address", "contract_code_sha256", "method", "network_label"],
+      "properties": {
+        "kind": { "enum": ["file", "rpc"] },
+        "rpc_url": { "type": ["string", "null"] },
+        "chain_id": { "type": "integer" },
+        "contract_address": { "type": "string", "pattern": "^0x[0-9a-fA-F]{40}$" },
+        "contract_code_sha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+        "method": { "const": "get_slice" },
+        "network_label": { "type": ["string", "null"] }
+      }
+    },
+    "raw_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$", "description": "digest of the exact reply text, so the stored observation can be tied back to what was read" },
+    "paused": { "type": "boolean" },
+    "predecessor_approved": { "type": "boolean" },
+    "task": {
+      "type": "object", "additionalProperties": false,
+      "required": ["slice_id", "status", "attempt", "scope", "criteria", "criteria_sha256", "task_sha256", "builder", "reviewer", "executor", "predecessor_id"],
+      "properties": {
+        "slice_id": { "type": "string" },
+        "status": { "enum": ["REGISTERED", "SUBMITTED", "REVIEWED_PASS", "REJECTED", "INSUFFICIENT", "APPROVED", "CONSUMED", "CANCELLED"] },
+        "attempt": { "type": "integer", "minimum": 0 },
+        "scope": { "type": "string" },
+        "criteria": { "type": "array", "items": { "type": "string" } },
+        "criteria_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "task_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "builder": { "type": "string" }, "reviewer": { "type": "string" }, "executor": { "type": "string" },
+        "predecessor_id": { "type": "string" }
+      }
+    },
+    "latest_attempt": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["attempt", "status", "evidence_sha256", "review", "approved_by", "consumed_by"],
+          "properties": {
+            "attempt": { "type": "integer", "minimum": 1 },
+            "status": { "enum": ["SUBMITTED", "REVIEWED_PASS", "REJECTED", "INSUFFICIENT", "APPROVED", "CONSUMED"] },
+            "evidence_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$", "description": "the evidence text itself is deliberately absent; it lives in the local package" },
+            "review": {
+              "oneOf": [
+                { "type": "null" },
+                {
+                  "type": "object", "additionalProperties": false,
+                  "required": ["verdict", "checks"],
+                  "properties": {
+                    "verdict": { "enum": ["PASS", "FAIL", "INSUFFICIENT_EVIDENCE"] },
+                    "checks": { "type": "array", "items": { "type": "object", "required": ["index", "status", "quote", "reason"], "properties": { "index": { "type": "integer" }, "status": { "enum": ["MET", "NOT_MET", "INSUFFICIENT"] }, "quote": { "type": "string" }, "reason": { "type": "string" } } } }
+                  }
+                }
+              ]
+            },
+            "approved_by": { "type": "string" },
+            "consumed_by": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "authority": { "const": "none" },
+    "assurance": { "enum": ["supplied_file_unverified", "single_endpoint_unverified"], "description": "v0.1 offers no corroborated or proven read; a second endpoint or a state proof would add further levels" }
+  }
+}

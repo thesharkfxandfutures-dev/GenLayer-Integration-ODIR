@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/thesharkfxandfutures-dev/GenLayer-Integration-ODIR/schema/review-package.v1.json",
+  "title": "ODIR review package v1 (odir-review-package/1)",
+  "description": "The candidate-bound record shared by the ODIR exporter, the genlayer-odir adapter, the ODIR Review Gate contract and Mission Control. Hash identity: sha256 over the canonical encoding (sorted keys, no whitespace, ASCII-escaped, integers only). The contract receives only criteria[].text (in order) and evidence.text; everything else is bound locally through package_sha256.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "identity", "candidate", "authority", "criteria", "evidence", "provenance", "disclosure", "destination", "lifetime", "idempotency"],
+  "properties": {
+    "schema": { "const": "odir-review-package/1" },
+    "identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["run_id", "slice_id", "attempt", "parent_attempt"],
+      "properties": {
+        "run_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "slice_id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$", "description": "same rule as register_slice" },
+        "attempt": { "type": "integer", "minimum": 1, "maximum": 3, "description": "contract allows three attempts per slice" },
+        "parent_attempt": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+    "candidate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["repo", "base_revision", "candidate_manifest_sha256"],
+      "properties": {
+        "repo": { "type": "string", "maxLength": 256 },
+        "base_revision": { "type": "string", "pattern": "^[0-9a-f]{7,64}$" },
+        "candidate_manifest_sha256": { "$ref": "#/$defs/sha256", "description": "digest of the frozen candidate manifest (tree digest, untracked files, lockfiles, test definitions)" }
+      }
+    },
+    "authority": {
+      "type": "object", "additionalProperties": false,
+      "required": ["run_contract_sha256", "policy_version"],
+      "properties": {
+        "run_contract_sha256": { "$ref": "#/$defs/sha256" },
+        "policy_version": { "type": "string", "maxLength": 64 }
+      }
+    },
+    "criteria": {
+      "type": "array", "minItems": 1, "maxItems": 8,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "text", "evidence_class", "version"],
+        "properties": {
+          "id": { "type": "string", "maxLength": 64 },
+          "text": { "type": "string", "minLength": 1, "maxLength": 600 },
+          "evidence_class": { "enum": ["text", "observed", "human"], "description": "text: judged from the evidence text; observed: needs a trusted observation, prose alone is INSUFFICIENT; human: an explicit human decision is required" },
+          "version": { "type": "string", "maxLength": 32 }
+        }
+      }
+    },
+    "evidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["text", "sha256", "raw_sha256"],
+      "properties": {
+        "text": { "type": "string", "minLength": 1, "maxLength": 12000, "description": "exactly what submit_evidence sends; already redacted and release-approved" },
+        "sha256": { "$ref": "#/$defs/sha256", "description": "sha256(text) = the contract's evidence_sha256" },
+        "raw_sha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }], "description": "digest of the unredacted local original, kept so the two are never confused" }
+      }
+    },
+    "provenance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["collector", "assurance", "attestation_sha256"],
+      "properties": {
+        "collector": { "type": "string", "maxLength": 128 },
+        "assurance": { "enum": ["builder_claim", "collector_observed", "independently_rerun", "protected_test", "host_enforcement"], "description": "set by policy and verified provenance, never by the builder" },
+        "attestation_sha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] }
+      }
+    },
+    "disclosure": {
+      "type": "object", "additionalProperties": false,
+      "required": ["export_manifest_sha256", "release_approval"],
+      "properties": {
+        "export_manifest_sha256": { "$ref": "#/$defs/sha256" },
+        "release_approval": { "type": "string", "maxLength": 256, "description": "who approved public release of evidence.text, and when" }
+      }
+    },
+    "destination": {
+      "type": "object", "additionalProperties": false,
+      "required": ["chain_id", "contract_address", "contract_code_sha256"],
+      "properties": {
+        "chain_id": { "type": "integer", "minimum": 1 },
+        "contract_address": { "type": "string", "pattern": "^0x[0-9a-fA-F]{40}$" },
+        "contract_code_sha256": { "$ref": "#/$defs/sha256", "description": "sha256 of the deployed contract source" }
+      }
+    },
+    "lifetime": {
+      "type": "object", "additionalProperties": false,
+      "required": ["submit_by", "accept_until"],
+      "properties": {
+        "submit_by": { "type": "string", "format": "date-time" },
+        "accept_until": { "type": "string", "format": "date-time", "description": "a remote result observed after this instant is EXPIRED locally; the contract has no expiry of its own" }
+      }
+    },
+    "idempotency": {
+      "type": "object", "additionalProperties": false,
+      "required": ["request_key"],
+      "properties": { "request_key": { "type": "string", "minLength": 1, "maxLength": 128 } }
+    }
+  },
+  "$defs": { "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" } }
+}

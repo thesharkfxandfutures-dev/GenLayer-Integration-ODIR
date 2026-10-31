@@ -1,0 +1,27 @@
+{
+  "_source": "Computed with CPython 3.15.2: json.dumps(v, sort_keys=True, separators=(',',':'), ensure_ascii=True), sha256 over UTF-8. The Node adapter must reproduce these bytes exactly.",
+  "vectors": [
+    {
+      "name": "D1 criteria list (what register_slice hashes as criteria_sha256)",
+      "value": ["Explain who owns inventory"],
+      "canonical": "[\"Explain who owns inventory\"]",
+      "sha256": "e840bbab92ca069aeb9c731b877b2ccf5f8b22959d57c0182204f2e7d9e4035e"
+    },
+    {
+      "name": "unicode, nesting, empty string, null, boolean, key order",
+      "value": {"b": "café — 日本 😀", "a": [1, 2, {"z": "", "y": null}], "c": true},
+      "canonical": "{\"a\":[1,2,{\"y\":null,\"z\":\"\"}],\"b\":\"caf\\u00e9 \\u2014 \\u65e5\\u672c \\ud83d\\ude00\",\"c\":true}",
+      "sha256": "9b253529c2e5218f4b33ef094b5dd20d5fc209d602ccfc51eaf837dc07edc89b"
+    },
+    {
+      "name": "D1 task record as register_slice hashes it (status REGISTERED, attempt 0, before task_sha256 is added)",
+      "value": {"slice_id": "D1", "scope": "Review a fuel reserve design", "criteria": ["Explain who owns inventory"], "criteria_sha256": "e840bbab92ca069aeb9c731b877b2ccf5f8b22959d57c0182204f2e7d9e4035e", "builder": "0x1111111111111111111111111111111111111111", "reviewer": "0x2222222222222222222222222222222222222222", "executor": "0x3333333333333333333333333333333333333333", "predecessor_id": "", "status": "REGISTERED", "attempt": 0},
+      "canonical": "{\"attempt\":0,\"builder\":\"0x1111111111111111111111111111111111111111\",\"criteria\":[\"Explain who owns inventory\"],\"criteria_sha256\":\"e840bbab92ca069aeb9c731b877b2ccf5f8b22959d57c0182204f2e7d9e4035e\",\"executor\":\"0x3333333333333333333333333333333333333333\",\"predecessor_id\":\"\",\"reviewer\":\"0x2222222222222222222222222222222222222222\",\"scope\":\"Review a fuel reserve design\",\"slice_id\":\"D1\",\"status\":\"REGISTERED\"}",
+      "sha256": "51e7fc4c5f14f60ff91bec6dc8497d282c382ef2fc20da442abc2fac3efb2d25"
+    }
+  ],
+  "evidence_text_sha256": {
+    "text": "The design stores each inventory item under one owner identified by account ID.",
+    "sha256": "0a90e021d5e57b5645618564789f972363cd5b610ccdecea776a4003e6b721ff"
+  }
+}

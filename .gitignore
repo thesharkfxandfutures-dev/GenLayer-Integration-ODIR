@@ -1,0 +1,11 @@
+# This repository is public. Nothing private, nothing that signs.
+node_modules/
+*.key
+*.pem
+*.env
+.env*
+config/*.json
+!config/*.example.json
+# local observations and packages produced while running the adapter
+out/
+*.local.json

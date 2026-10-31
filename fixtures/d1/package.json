@@ -1,0 +1,52 @@
+{
+  "schema": "odir-review-package/1",
+  "identity": {
+    "run_id": "run-d1-synthetic",
+    "slice_id": "D1",
+    "attempt": 1,
+    "parent_attempt": null
+  },
+  "candidate": {
+    "repo": "thesharkfxandfutures-dev/GenLayer-Integration-ODIR",
+    "base_revision": "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678",
+    "candidate_manifest_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "authority": {
+    "run_contract_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "policy_version": "advisory-design-review/1"
+  },
+  "criteria": [
+    {
+      "id": "C1",
+      "text": "Explain who owns inventory",
+      "evidence_class": "text",
+      "version": "1"
+    }
+  ],
+  "evidence": {
+    "text": "The design stores each inventory item under one owner identified by account ID.",
+    "sha256": "0a90e021d5e57b5645618564789f972363cd5b610ccdecea776a4003e6b721ff",
+    "raw_sha256": null
+  },
+  "provenance": {
+    "collector": "synthetic-fixture",
+    "assurance": "builder_claim",
+    "attestation_sha256": null
+  },
+  "disclosure": {
+    "export_manifest_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "release_approval": "synthetic fixture: public by construction, no private material"
+  },
+  "destination": {
+    "chain_id": 61999,
+    "contract_address": "0xFE76B46a8345Fd8e07A8aA092BA715c8a4C3C646",
+    "contract_code_sha256": "f27688d0bf79f65900e4c7145909ed7b90d2a220ac8b987ed2906c94ffde5341"
+  },
+  "lifetime": {
+    "submit_by": "2026-10-31T00:00:00Z",
+    "accept_until": "2026-11-30T00:00:00Z"
+  },
+  "idempotency": {
+    "request_key": "run-d1-synthetic/D1/1/0a90e021"
+  }
+}

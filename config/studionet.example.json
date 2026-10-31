@@ -1,0 +1,14 @@
+{
+  "network_label": "studionet",
+  "chain_id": 61999,
+  "rpc_url": "https://studio.genlayer.com/api",
+  "explorer_url": "https://explorer-studio.genlayer.com/address/0xFE76B46a8345Fd8e07A8aA092BA715c8a4C3C646",
+  "contract_address": "0xFE76B46a8345Fd8e07A8aA092BA715c8a4C3C646",
+  "contract_code_sha256": "f27688d0bf79f65900e4c7145909ed7b90d2a220ac8b987ed2906c94ffde5341",
+  "permitted_methods": ["get_slice", "get_attempt", "can_consume", "get_config"],
+  "_verification": {
+    "chain_id": "UNVERIFIED: confirm against https://docs.genlayer.com/developers/networks before first use",
+    "contract_code_sha256": "sha256 of contracts/odir_review_gate.py in this repo. Whether the code deployed at contract_address is byte-identical has NOT been confirmed; compare against the source shown in Studio or the explorer and record the result in docs/DEPLOYMENTS.md",
+    "permitted_methods": "view methods only; this adapter never calls a write method"
+  }
+}

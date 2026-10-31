@@ -1,0 +1,8 @@
+{
+  "network_label": "studionet",
+  "chain_id": 61999,
+  "rpc_url": "https://studio.genlayer.com/api",
+  "contract_address": "0xFE76B46a8345Fd8e07A8aA092BA715c8a4C3C646",
+  "contract_code_sha256": "f27688d0bf79f65900e4c7145909ed7b90d2a220ac8b987ed2906c94ffde5341",
+  "_note": "Fixture copy of config/studionet.example.json. chain_id and the deployed code identity are UNVERIFIED claims until checked against docs.genlayer.com/developers/networks and the explorer."
+}
