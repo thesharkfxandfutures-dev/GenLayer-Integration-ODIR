@@ -1,0 +1,53 @@
+{
+  "schema": "odir-genlayer-observation/1",
+  "observed_at": "2026-10-31T15:53:51.748Z",
+  "source": {
+    "kind": "rpc",
+    "rpc_url": "https://studio.genlayer.com/api",
+    "chain_id": 61999,
+    "contract_address": "0xFE76B46a8345Fd8e07A8aA092BA715c8a4C3C646",
+    "contract_code_sha256": "f27688d0bf79f65900e4c7145909ed7b90d2a220ac8b987ed2906c94ffde5341",
+    "method": "get_slice",
+    "network_label": "studionet",
+    "state_selection": "latest-final",
+    "client_version": "genlayer-js@1.1.8"
+  },
+  "raw_sha256": "c983dfc13b17b9e3dcffb817e11d4b8cb52dfc756d64c54591f636fdfd3f0daa",
+  "paused": false,
+  "predecessor_approved": true,
+  "task": {
+    "slice_id": "D1",
+    "status": "CONSUMED",
+    "attempt": 1,
+    "scope": "Check my inventory design",
+    "criteria": [
+      "Explain who owns inventory"
+    ],
+    "criteria_sha256": "e840bbab92ca069aeb9c731b877b2ccf5f8b22959d57c0182204f2e7d9e4035e",
+    "task_sha256": "bf341710c4e1aee13fd3b3c14db26a1d8f2db71206bee5317f6c6dcde12853b2",
+    "builder": "0x72B11aAA50299C879119Fa0eA95E941B90CCdaEd",
+    "reviewer": "0x53f77F7aD9e640F91f0834463A577FC85dF6c1Eb",
+    "executor": "0x1A73D22956960634e79Eae04E5E99dA4C3A6616C",
+    "predecessor_id": ""
+  },
+  "latest_attempt": {
+    "attempt": 1,
+    "status": "CONSUMED",
+    "evidence_sha256": "b2f9fb94bfb5ca90b193e3f193fd4688d1afce24dd5b40af2fcd79be3ae5809c",
+    "review": {
+      "verdict": "PASS",
+      "checks": [
+        {
+          "index": 0,
+          "status": "MET",
+          "quote": "Each inventory record has one owner, identified by a unique account ID.",
+          "reason": "The document explicitly explains ownership of inventory by stating each record has a single owner identified by account ID."
+        }
+      ]
+    },
+    "approved_by": "0x53f77F7aD9e640F91f0834463A577FC85dF6c1Eb",
+    "consumed_by": "0x1A73D22956960634e79Eae04E5E99dA4C3A6616C"
+  },
+  "authority": "none",
+  "assurance": "single_endpoint_unverified"
+}

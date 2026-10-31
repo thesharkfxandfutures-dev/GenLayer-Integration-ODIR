@@ -4,11 +4,17 @@
   "description": "Read-only adapter between an ODIR review package and the ODIR Review Gate GenLayer contract. No signing, no submission, no permits.",
   "type": "module",
   "private": true,
-  "bin": { "genlayer-odir": "bin/genlayer-odir.mjs" },
-  "engines": { "node": ">=20" },
+  "bin": {
+    "genlayer-odir": "bin/genlayer-odir.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "test": "node --test \"test/*.test.js\"",
     "fixtures": "node bin/genlayer-odir.mjs fixtures"
   },
-  "dependencies": {}
+  "optionalDependencies": {
+    "genlayer-js": "1.1.8"
+  }
 }

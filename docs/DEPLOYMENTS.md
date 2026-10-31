@@ -2,25 +2,58 @@
 
 | Field | Value | Status |
 |---|---|---|
-| Network | GenLayer Studionet | owner-supplied |
-| Chain ID | 61999 | **UNVERIFIED** against https://docs.genlayer.com/developers/networks |
+| Network | GenLayer Studionet | confirmed by the pinned client's chain definition (`genlayer-js@1.1.8`, `studionet.id`) |
+| Chain ID | 61999 | **confirmed** against the client's definition; still cross-check https://docs.genlayer.com/developers/networks when the client is upgraded |
+| RPC | `https://studio.genlayer.com/api` | confirmed by the client's definition; one endpoint, no corroboration |
 | Contract | `0xFE76B46a8345Fd8e07A8aA092BA715c8a4C3C646` | owner-supplied; explorer: https://explorer-studio.genlayer.com/address/0xFE76B46a8345Fd8e07A8aA092BA715c8a4C3C646 |
-| Source candidate | `contracts/odir_review_gate.py`, sha256 `f27688d0bf79f65900e4c7145909ed7b90d2a220ac8b987ed2906c94ffde5341` | the newest of three local downloads (`odir_review_gate.py`, `(1)`, `(2)`, 302/302/318 lines). Which one is deployed has **not** been confirmed byte-for-byte |
+| Source candidate | `contracts/odir_review_gate.py`, sha256 `f27688d0bf79f65900e4c7145909ed7b90d2a220ac8b987ed2906c94ffde5341` | the newest of three local downloads (302/302/318 lines). **Claimed** code identity: whether the deployed bytes equal this file has not been confirmed |
 | Runner dependency | `py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6` (header of the source) | pinned in source; an earlier "latest" runner was rejected during the prototype |
+
+## Live observation, 2026-10-31 (adapter, read-only)
+
+Read through `genlayer-odir observe --slice D1 --config config/studionet.example.json --rpc`
+with `genlayer-js@1.1.8`, state selection `latest-final`, in under two seconds. Recorded as
+`fixtures/d1/get_slice.live.2026-10-31.json` (raw reply) and
+`fixtures/d1/observation.live.2026-10-31.json` (observation record).
+
+| What the contract reported | Value |
+|---|---|
+| slice / attempt / status | `D1` / 1 / `CONSUMED` |
+| scope | "Check my inventory design" |
+| criterion | "Explain who owns inventory" |
+| review | `PASS`, criterion 0 `MET`, quote "Each inventory record has one owner, identified by a unique account ID." |
+| builder / reviewer / executor | `0x72B1…daEd` / `0x53f7…c1Eb` / `0x1A73…616C` (full values in the fixture) |
+| approved_by / consumed_by | the reviewer address / the executor address |
+| evidence_sha256 | `b2f9fb94bfb5ca90b193e3f193fd4688d1afce24dd5b40af2fcd79be3ae5809c` |
+| task_sha256 | `bf341710c4e1aee13fd3b3c14db26a1d8f2db71206bee5317f6c6dcde12853b2` |
+| raw reply sha256 | `c983dfc13b17b9e3dcffb817e11d4b8cb52dfc756d64c54591f636fdfd3f0daa` |
+| paused / predecessor_approved | false / true |
+
+What this establishes:
+- The recorded D1 lifecycle (register, submit, review PASS, approve, consume) is what the contract
+  holds at `latest-final`, read by this adapter rather than supplied by hand.
+- The adapter's canonical encoding reproduces the `task_sha256` and `criteria_sha256` the deployed
+  contract computed, and `sha256(evidence)` equals the stored `evidence_sha256`
+  (`adapter/test/live-fixture.test.js`). So Node and the deployed Python agree byte for byte on
+  the shared hashes, not only Node and a local CPython.
+- A reconstructed package with the real evidence text reconciles `CONSISTENT` (status `CONSUMED`);
+  the synthetic fixture package reconciles `INTEGRITY_MISMATCH` against the same state.
+
+What it does not establish: the deployed code identity (only the source candidate's hash is
+known), denial coverage, behaviour under malformed model output, any repository candidate, any
+local execution, any host containment. One endpoint was read; nothing corroborated it.
+
+Negative paths exercised live the same day: a config naming chain 4221 is refused before any
+request (exit 5, `configuration_failure`); an unknown slice returns the contract's execution
+failure (exit 3, `execution_error`), classified apart from an outage.
 
 ## Owner-demonstrated D1 lifecycle (prototype evidence, not production assurance)
 
 Supplied transaction and state outputs showed, in order: `register_slice('D1', …)` with one
 criterion "Explain who owns inventory"; `submit_evidence` (attempt 1); `review_submission` returning
 PASS with a source quote; `approve_submission` by the reviewer account; `consume_approval` by the
-executor account; `can_consume('D1')` afterwards returning `false`.
-
-What this establishes: the happy path works on Studionet with role-separated accounts and the
-one-time consume.
-
-What it does not establish: denial coverage (wrong roles, duplicate consume, dependency blocks,
-pause), behaviour under malformed model output in every path, any repository candidate, any local
-execution, any host containment.
+executor account; `can_consume('D1')` afterwards returning `false`. The live observation above is
+consistent with every step.
 
 Known events from the same session worth keeping as test cases:
 - a review returned malformed JSON before a later successful consensus (format-failure path);
@@ -30,6 +63,8 @@ Known events from the same session worth keeping as test cases:
 ## Rules for the next deployment
 
 1. Record the exact source sha256 and the runner id beside the new address, here, before use.
-2. Treat a code change at the same address as a new trust assumption: re-run GenVM tests, decide
-   whether earlier verdicts remain valid under policy.
-3. Never update the runner to clear a transient provider error.
+2. Treat a code change at the same address as a new trust assumption: re-run the GenVM cases in
+   `docs/GENVM-TESTS.md`, decide whether earlier verdicts remain valid under policy.
+3. Never update the runner or the client to clear a transient provider error.
+4. When `genlayer-js` is upgraded, re-run `adapter/test/rpc.test.js` and take a fresh live
+   observation; the chain definition and the read semantics are part of the trust assumption.

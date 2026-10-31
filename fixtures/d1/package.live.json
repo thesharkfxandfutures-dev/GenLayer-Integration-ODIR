@@ -1,0 +1,52 @@
+{
+  "schema": "odir-review-package/1",
+  "identity": {
+    "run_id": "run-d1-owner-demo",
+    "slice_id": "D1",
+    "attempt": 1,
+    "parent_attempt": null
+  },
+  "candidate": {
+    "repo": "none: the D1 demonstration had no repository candidate",
+    "base_revision": "0000000",
+    "candidate_manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "authority": {
+    "run_contract_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "policy_version": "prototype-no-run-contract"
+  },
+  "criteria": [
+    {
+      "id": "C1",
+      "text": "Explain who owns inventory",
+      "evidence_class": "text",
+      "version": "1"
+    }
+  ],
+  "evidence": {
+    "text": "Each inventory record has one owner, identified by a unique account ID. A transfer replaces the old owner ID with the new owner's ID. The record therefore belongs to only one owner at a time.",
+    "sha256": "b2f9fb94bfb5ca90b193e3f193fd4688d1afce24dd5b40af2fcd79be3ae5809c",
+    "raw_sha256": null
+  },
+  "provenance": {
+    "collector": "owner, by hand in GenLayer Studio",
+    "assurance": "builder_claim",
+    "attestation_sha256": null
+  },
+  "disclosure": {
+    "export_manifest_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "release_approval": "owner published this text on Studionet on or before 2026-10-31; it is already public"
+  },
+  "destination": {
+    "chain_id": 61999,
+    "contract_address": "0xFE76B46a8345Fd8e07A8aA092BA715c8a4C3C646",
+    "contract_code_sha256": "f27688d0bf79f65900e4c7145909ed7b90d2a220ac8b987ed2906c94ffde5341"
+  },
+  "lifetime": {
+    "submit_by": "2026-10-31T00:00:00Z",
+    "accept_until": "2027-01-31T00:00:00Z"
+  },
+  "idempotency": {
+    "request_key": "run-d1-owner-demo/D1/1/b2f9fb94"
+  }
+}

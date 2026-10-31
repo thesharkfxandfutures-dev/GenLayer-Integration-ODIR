@@ -11,9 +11,11 @@
     "observed_at": { "type": "string", "format": "date-time" },
     "source": {
       "type": "object", "additionalProperties": false,
-      "required": ["kind", "rpc_url", "chain_id", "contract_address", "contract_code_sha256", "method", "network_label"],
+      "required": ["kind", "rpc_url", "chain_id", "contract_address", "contract_code_sha256", "method", "network_label", "state_selection", "client_version"],
       "properties": {
         "kind": { "enum": ["file", "rpc"] },
+        "state_selection": { "type": ["string", "null"], "description": "which contract state the read selected, e.g. latest-final; null for a supplied file" },
+        "client_version": { "type": ["string", "null"], "description": "pinned client that performed the read, e.g. genlayer-js@1.1.8; null for a supplied file" },
         "rpc_url": { "type": ["string", "null"] },
         "chain_id": { "type": "integer" },
         "contract_address": { "type": "string", "pattern": "^0x[0-9a-fA-F]{40}$" },

@@ -74,6 +74,7 @@ export function observe(raw, { source, now = new Date() }) {
       kind: source.kind, rpc_url: source.rpc_url || null, chain_id: source.chain_id,
       contract_address: source.contract_address, contract_code_sha256: source.contract_code_sha256 || null,
       method: 'get_slice', network_label: source.network_label || null,
+      state_selection: source.state_selection || null, client_version: source.client_version || null,
     },
     raw_sha256: sha256(raw),
     paused: r.paused,
