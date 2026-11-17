@@ -63,7 +63,7 @@ used only by `--rpc`, loaded on demand.
 | GenVM denial tests | specified in `docs/GENVM-TESTS.md`, not yet run on the real runtime |
 | Any authority over ODIR's host | none, by design |
 | SnapLink work-evidence contract rules (binding, access, duplicates, fail-closed) | 13 tests on the real SDK in `gltest` direct mode, LLM mocked; `genvm-lint check` passes |
-| SnapLink work-evidence on Studionet | live run 2026-11-17 `dryrun1`: deploy + 4 scenarios decided `ACCEPTED`/`MAJORITY_AGREE` (`docs/DEPLOYMENTS.md`); finality not observed |
+| SnapLink work-evidence on Studionet | live run 2026-11-17 `dryrun1`: deploy + 4 scenarios `MAJORITY_AGREE`; independent readback VERIFY PASS, all four transactions FINALIZED (`docs/DEPLOYMENTS.md`) |
 
 A `PASS` from the contract is a reviewed opinion about approved public text. It becomes permission
 to do anything only inside ODIR, after ODIR's own checks, under ODIR's own policy.

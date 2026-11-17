@@ -89,11 +89,17 @@ Known events from the same session worth keeping as test cases:
 | tampered (evidence edited after hashing) | `0xe3cfd8ae35ad091c00c166e4599dff0df7a88353c117cd3edebeaedee7ff62ab` | ACCEPTED, MAJORITY_AGREE | ERROR | nothing stored |
 | duplicate (same case again) | `0x3916fc7bd863139b10ecd1f215823e2059bba8a85684fb1c92b6b334d516e0bc` | ACCEPTED, MAJORITY_AGREE | ERROR | original record unchanged |
 
+Independent readback, 2026-11-17T12:56Z: `verify_receipt.py` run from a fresh clone of this branch (commit `d240079`)
+in a separate environment re-read chain id, policy version, all four transactions and every stored case
+from Studionet and recomputed every digest from the committed fixtures: **VERIFY PASS** (28 checks).
+All four transactions then reported **FINALIZED** by the network (status read, not assumed); the
+deploy transaction was not re-read. Log: `fixtures/snaplink-work-evidence/receipts/dryrun1.verify.txt`.
+
 What this establishes: a SnapLink-shaped work claim was assessed by Studionet's validators and their
 LLMs, they agreed on the decision, the result is stored bound to the evidence and bundle digests,
 a non-matching claim was refused, and changed or repeated submissions stored nothing new.
 
-What it does not establish: finality (only the decided status was recorded); the specific refusal
+What it does not establish: the specific refusal
 reason on-chain (the receipt shows execution `ERROR`; that the reason is `EVIDENCE_HASH_MISMATCH` /
 `DUPLICATE_SUBMISSION` is established by the direct-mode tests, not read from the network); model
 quality beyond these two fixtures; explorer confirmation of code identity; anything about a real

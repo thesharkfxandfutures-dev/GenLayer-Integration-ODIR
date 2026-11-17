@@ -1,0 +1,35 @@
+# verify_receipt.py fixtures/snaplink-work-evidence/receipts/dryrun1.json
+# fresh clone of feat/snaplink-work-evidence-2026-11-17 @ d2400794b728e72c56bd94465ffa84e52e195f6a, Python 3.12, genlayer-py 0.16.3
+PASS network is Studionet — chain 61999
+PASS contract policy version
+PASS local contract source matches the receipt
+PASS [matching] bundle digest recomputed from fixtures
+     tx 0xd0dc630cb1afa44ae223a91f531ae21e1cc9810e16c5bcc5978453837b0b1bb1 status now FINALIZED · consensus MAJORITY_AGREE · execution SUCCESS
+PASS [matching] transaction decided on the network
+PASS [matching] stored record exists
+PASS [matching] stored bundle digest matches
+PASS [matching] stored evidence digests match
+PASS [matching] stored outcome matches receipt — MEETS_REQUIREMENTS
+PASS [matching] outcome is the expected one — expected MEETS_REQUIREMENTS
+PASS [non_matching] bundle digest recomputed from fixtures
+     tx 0x33e3cde5ce87202a53d96b30cb460604d7ac21831e635098686a90f1356fd6cb status now FINALIZED · consensus MAJORITY_AGREE · execution SUCCESS
+PASS [non_matching] transaction decided on the network
+PASS [non_matching] stored record exists
+PASS [non_matching] stored bundle digest matches
+PASS [non_matching] stored evidence digests match
+PASS [non_matching] stored outcome matches receipt — DOES_NOT_MEET_REQUIREMENTS
+PASS [non_matching] outcome is the expected one — expected DOES_NOT_MEET_REQUIREMENTS
+PASS [tampered] bundle digest recomputed from fixtures
+     tx 0xe3cfd8ae35ad091c00c166e4599dff0df7a88353c117cd3edebeaedee7ff62ab status now FINALIZED · consensus MAJORITY_AGREE · execution ERROR
+PASS [tampered] transaction decided on the network
+PASS [tampered] nothing stored for refused evidence
+PASS [tampered] execution reported an error
+PASS [duplicate] bundle digest recomputed from fixtures
+     tx 0x3916fc7bd863139b10ecd1f215823e2059bba8a85684fb1c92b6b334d516e0bc status now FINALIZED · consensus MAJORITY_AGREE · execution ERROR
+PASS [duplicate] transaction decided on the network
+PASS [duplicate] stored record exists
+PASS [duplicate] stored bundle digest matches
+PASS [duplicate] stored evidence digests match
+PASS [duplicate] stored outcome matches receipt — MEETS_REQUIREMENTS
+PASS [duplicate] resubmission refused (execution ERROR) and record unchanged
+VERIFY PASS
