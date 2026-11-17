@@ -1,0 +1,182 @@
+{
+  "cases": [
+    {
+      "bundle_digest": "f9e36e9646f30c78d95af3859fee9a68f6e95d4882a367bda88547551acd1be0",
+      "case_id": "dryrun1-match",
+      "consensus_result": "MAJORITY_AGREE",
+      "evidence_digests": [
+        "454b915aa2a6ce0e6adc6a6b21a8426e271325848234853e0d991c563c311f16",
+        "276371a01ca64edce9552a6c4955a19b67188ea6cbfee1aed8d538b2575da664"
+      ],
+      "execution_result": "SUCCESS",
+      "expected": "MEETS_REQUIREMENTS",
+      "leader_error": "",
+      "rounds": "1",
+      "scenario": "matching",
+      "seconds": 23.1,
+      "status": "ACCEPTED",
+      "stored_bundle_digest": "f9e36e9646f30c78d95af3859fee9a68f6e95d4882a367bda88547551acd1be0",
+      "stored_outcome": "MEETS_REQUIREMENTS",
+      "stored_record": {
+        "bundle_digest": "f9e36e9646f30c78d95af3859fee9a68f6e95d4882a367bda88547551acd1be0",
+        "case_id": "dryrun1-match",
+        "evidence_digests": [
+          "454b915aa2a6ce0e6adc6a6b21a8426e271325848234853e0d991c563c311f16",
+          "276371a01ca64edce9552a6c4955a19b67188ea6cbfee1aed8d538b2575da664"
+        ],
+        "met": {
+          "R1": true,
+          "R2": true,
+          "R3": true,
+          "R4": true
+        },
+        "outcome": "MEETS_REQUIREMENTS",
+        "policy_version": "snaplink-work-evidence/1",
+        "requirement_ids": [
+          "R1",
+          "R2",
+          "R3",
+          "R4"
+        ],
+        "submitter": "0xCA13C54FE1F3283CA211bA4FD23252d479097F51"
+      },
+      "tx": "0xd0dc630cb1afa44ae223a91f531ae21e1cc9810e16c5bcc5978453837b0b1bb1",
+      "wait_error": null
+    },
+    {
+      "bundle_digest": "5faf7e48da3e620d7e113392108ca19d5a80b37d8f6789235227104296acfe59",
+      "case_id": "dryrun1-miss",
+      "consensus_result": "MAJORITY_AGREE",
+      "evidence_digests": [
+        "db3d9764b797c7e15d627985394f4c98db2840ec351d7c84b65a3ac156bf2ee6"
+      ],
+      "execution_result": "SUCCESS",
+      "expected": "DOES_NOT_MEET_REQUIREMENTS",
+      "leader_error": "",
+      "rounds": "1",
+      "scenario": "non_matching",
+      "seconds": 13.9,
+      "status": "ACCEPTED",
+      "stored_bundle_digest": "5faf7e48da3e620d7e113392108ca19d5a80b37d8f6789235227104296acfe59",
+      "stored_outcome": "DOES_NOT_MEET_REQUIREMENTS",
+      "stored_record": {
+        "bundle_digest": "5faf7e48da3e620d7e113392108ca19d5a80b37d8f6789235227104296acfe59",
+        "case_id": "dryrun1-miss",
+        "evidence_digests": [
+          "db3d9764b797c7e15d627985394f4c98db2840ec351d7c84b65a3ac156bf2ee6"
+        ],
+        "met": {
+          "R1": false,
+          "R2": false,
+          "R3": false,
+          "R4": false
+        },
+        "outcome": "DOES_NOT_MEET_REQUIREMENTS",
+        "policy_version": "snaplink-work-evidence/1",
+        "requirement_ids": [
+          "R1",
+          "R2",
+          "R3",
+          "R4"
+        ],
+        "submitter": "0xCA13C54FE1F3283CA211bA4FD23252d479097F51"
+      },
+      "tx": "0x33e3cde5ce87202a53d96b30cb460604d7ac21831e635098686a90f1356fd6cb",
+      "wait_error": null
+    },
+    {
+      "bundle_digest": "f9e36e9646f30c78d95af3859fee9a68f6e95d4882a367bda88547551acd1be0",
+      "case_id": "dryrun1-tamper",
+      "consensus_result": "MAJORITY_AGREE",
+      "evidence_digests": [
+        "454b915aa2a6ce0e6adc6a6b21a8426e271325848234853e0d991c563c311f16",
+        "276371a01ca64edce9552a6c4955a19b67188ea6cbfee1aed8d538b2575da664"
+      ],
+      "execution_result": "ERROR",
+      "expected": "EVIDENCE_HASH_MISMATCH",
+      "leader_error": "",
+      "rounds": "1",
+      "scenario": "tampered",
+      "seconds": 7.8,
+      "status": "ACCEPTED",
+      "stored_bundle_digest": null,
+      "stored_outcome": null,
+      "stored_record": null,
+      "tx": "0xe3cfd8ae35ad091c00c166e4599dff0df7a88353c117cd3edebeaedee7ff62ab",
+      "wait_error": null
+    },
+    {
+      "bundle_digest": "f9e36e9646f30c78d95af3859fee9a68f6e95d4882a367bda88547551acd1be0",
+      "case_id": "dryrun1-match",
+      "consensus_result": "MAJORITY_AGREE",
+      "evidence_digests": [
+        "454b915aa2a6ce0e6adc6a6b21a8426e271325848234853e0d991c563c311f16",
+        "276371a01ca64edce9552a6c4955a19b67188ea6cbfee1aed8d538b2575da664"
+      ],
+      "execution_result": "ERROR",
+      "expected": "DUPLICATE_SUBMISSION",
+      "leader_error": "",
+      "rounds": "1",
+      "scenario": "duplicate",
+      "seconds": 7.6,
+      "status": "ACCEPTED",
+      "stored_bundle_digest": "f9e36e9646f30c78d95af3859fee9a68f6e95d4882a367bda88547551acd1be0",
+      "stored_outcome": "MEETS_REQUIREMENTS",
+      "stored_record": {
+        "bundle_digest": "f9e36e9646f30c78d95af3859fee9a68f6e95d4882a367bda88547551acd1be0",
+        "case_id": "dryrun1-match",
+        "evidence_digests": [
+          "454b915aa2a6ce0e6adc6a6b21a8426e271325848234853e0d991c563c311f16",
+          "276371a01ca64edce9552a6c4955a19b67188ea6cbfee1aed8d538b2575da664"
+        ],
+        "met": {
+          "R1": true,
+          "R2": true,
+          "R3": true,
+          "R4": true
+        },
+        "outcome": "MEETS_REQUIREMENTS",
+        "policy_version": "snaplink-work-evidence/1",
+        "requirement_ids": [
+          "R1",
+          "R2",
+          "R3",
+          "R4"
+        ],
+        "submitter": "0xCA13C54FE1F3283CA211bA4FD23252d479097F51"
+      },
+      "tx": "0x3916fc7bd863139b10ecd1f215823e2059bba8a85684fb1c92b6b334d516e0bc",
+      "wait_error": null
+    }
+  ],
+  "contract": {
+    "address": "0x89253affc135Ad782ba012bB19bBd2Df5C722B3e",
+    "path": "genlayer/contracts/snaplink_work_evidence.py",
+    "policy_version": "snaplink-work-evidence/1",
+    "sha256": "b89a6938c2e46abb8d1897a6d9f3e86ea675a1a059c6a00b6d3b4ffd8559d91b"
+  },
+  "deploy": {
+    "consensus_result": "MAJORITY_AGREE",
+    "execution_result": "SUCCESS",
+    "leader_error": "",
+    "rounds": "1",
+    "seconds": 6.6,
+    "status": "ACCEPTED",
+    "tx": "0x2e086426df851b2325710346dd9165d376312ea34b1aa31b7f39ca2332e661bf",
+    "wait_error": null
+  },
+  "environment": "DEMO / TESTNET ONLY \u2014 not production, not a verification of any real person",
+  "finished_at": "2026-11-17T12:38:28.244408+00:00",
+  "fixtures_sha256": "132f3648b3561d4cb5f32696da3ea88067576cb54ed916bc09a1c57c8a9a5edc",
+  "network": {
+    "chain_id": 61999,
+    "name": "GenLayer Studionet (development network)",
+    "rpc": "https://studio.genlayer.com/api"
+  },
+  "run_id": "dryrun1",
+  "sdk": {
+    "genlayer_py": "0.16.3",
+    "py_genlayer_runner": "1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6"
+  },
+  "submitter": "0xCA13C54FE1F3283CA211bA4FD23252d479097F51"
+}

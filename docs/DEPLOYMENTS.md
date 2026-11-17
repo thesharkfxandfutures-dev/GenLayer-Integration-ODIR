@@ -68,3 +68,33 @@ Known events from the same session worth keeping as test cases:
 3. Never update the runner or the client to clear a transient provider error.
 4. When `genlayer-js` is upgraded, re-run `adapter/test/rpc.test.js` and take a fresh live
    observation; the chain definition and the read semantics are part of the trust assumption.
+
+# SnapLink work-evidence assessment — Studionet, 2026-11-17 (demo only)
+
+| Field | Value | Status |
+|---|---|---|
+| Network | GenLayer Studionet, `https://studio.genlayer.com/api` | `eth_chainId` read live = `0xf22f` (61999) before any write; the runner refuses other chains |
+| Contract | `0x89253affc135Ad782ba012bB19bBd2Df5C722B3e` | deployed by the runner, tx `0x2e086426df851b2325710346dd9165d376312ea34b1aa31b7f39ca2332e661bf`, `ACCEPTED` / `MAJORITY_AGREE` / `SUCCESS` |
+| Source | `contracts/snaplink_work_evidence.py`, sha256 `b89a6938c2e46abb8d1897a6d9f3e86ea675a1a059c6a00b6d3b4ffd8559d91b` | the runner deployed exactly these bytes (sha recorded at deploy time equals this file); explorer confirmation not done |
+| Runner dependency | `py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6` | same pin as `odir_review_gate.py` |
+| Client | `genlayer-py==0.16.3`, Python 3.12 | pinned in `snaplink-work-evidence/requirements.txt` |
+| Fixtures | `fixtures/snaplink-work-evidence/demo_cases.json`, sha256 `132f3648b3561d4cb5f32696da3ea88067576cb54ed916bc09a1c57c8a9a5edc` | fictional; public calldata |
+| Submitter | `0xCA13C54FE1F3283CA211bA4FD23252d479097F51` | throwaway Studionet key, never committed |
+| Receipt | `fixtures/snaplink-work-evidence/receipts/dryrun1.json`, sha256 `3c13d317c1a52b6070370466a622f556b58752f6de67efd17694897c1cec401c` | written by the runner, byte-identical copy |
+
+| Scenario | Transaction | Network status | Execution | Stored outcome |
+|---|---|---|---|---|
+| matching | `0xd0dc630cb1afa44ae223a91f531ae21e1cc9810e16c5bcc5978453837b0b1bb1` | ACCEPTED, MAJORITY_AGREE, 1 round | SUCCESS | `MEETS_REQUIREMENTS` (R1–R4 met) |
+| non_matching | `0x33e3cde5ce87202a53d96b30cb460604d7ac21831e635098686a90f1356fd6cb` | ACCEPTED, MAJORITY_AGREE, 1 round | SUCCESS | `DOES_NOT_MEET_REQUIREMENTS` (R1–R4 not met) |
+| tampered (evidence edited after hashing) | `0xe3cfd8ae35ad091c00c166e4599dff0df7a88353c117cd3edebeaedee7ff62ab` | ACCEPTED, MAJORITY_AGREE | ERROR | nothing stored |
+| duplicate (same case again) | `0x3916fc7bd863139b10ecd1f215823e2059bba8a85684fb1c92b6b334d516e0bc` | ACCEPTED, MAJORITY_AGREE | ERROR | original record unchanged |
+
+What this establishes: a SnapLink-shaped work claim was assessed by Studionet's validators and their
+LLMs, they agreed on the decision, the result is stored bound to the evidence and bundle digests,
+a non-matching claim was refused, and changed or repeated submissions stored nothing new.
+
+What it does not establish: finality (only the decided status was recorded); the specific refusal
+reason on-chain (the receipt shows execution `ERROR`; that the reason is `EVIDENCE_HASH_MISMATCH` /
+`DUPLICATE_SUBMISSION` is established by the direct-mode tests, not read from the network); model
+quality beyond these two fixtures; explorer confirmation of code identity; anything about a real
+person, or production.

@@ -1,0 +1,21 @@
+{
+  "_note": "FICTIONAL DEMONSTRATION FIXTURES. No real client, person, payslip or contract. Evidence becomes public calldata on Studionet.",
+  "brief": {
+    "title": "Sample brief: product photography for 'Northlight Ceramics' (fictional)",
+    "requirements": [
+      { "id": "R1", "text": "At least three edited product photographs of the ceramic mug are delivered." },
+      { "id": "R2", "text": "Every photograph is on a plain white background." },
+      { "id": "R3", "text": "Every photograph is at least 2000 pixels on its long edge." },
+      { "id": "R4", "text": "Files are delivered as JPEG." }
+    ]
+  },
+  "cases": {
+    "matching": [
+      { "id": "E1", "label": "Delivery manifest", "content": "Delivery for Northlight Ceramics mug shoot. Files: mug_front.jpg (3000x2000 px, JPEG, plain white background), mug_side.jpg (3000x2000 px, JPEG, plain white background), mug_handle_detail.jpg (2400x3000 px, JPEG, plain white background). All three are edited (colour corrected, retouched)." },
+      { "id": "E2", "label": "Client acceptance note", "content": "Client note (fictional): Received three edited mug photographs on white, all high resolution JPEGs. Accepted." }
+    ],
+    "non_matching": [
+      { "id": "E1", "label": "Delivery manifest", "content": "Delivery for Northlight Ceramics mug shoot. Files: mug_front.png (1200x800 px, PNG, grey textured background), mug_side.png (1200x800 px, PNG, grey textured background). Two images delivered, lightly edited." }
+    ]
+  }
+}

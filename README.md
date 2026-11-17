@@ -24,7 +24,15 @@ docs/DEPLOYMENTS.md               what is deployed where, the live observation, 
 docs/GENVM-TESTS.md               the denial and failure cases the contract must pass on the real runtime
 docs/CONTRACT-V2.md               expiry, revocation and package binding: the next contract version
 docs/ARCHITECTURE-TIERS.md        developer tool → team governance → enterprise platform
+
+contracts/snaplink_work_evidence.py               SnapLink work-evidence assessment (demo / Studionet only)
+snaplink-work-evidence/                           its runner, independent verifier, tests and meeting script
+fixtures/snaplink-work-evidence/                  fictional brief + evidence; recorded live receipts
 ```
+
+`snaplink-work-evidence/` is the one place in this repository that **signs and submits**: an opt-in
+Studionet demo runner using a throwaway key kept outside the repository. Everything else here stays
+read-only. See `snaplink-work-evidence/README.md`.
 
 ## Quick start
 
@@ -54,6 +62,8 @@ used only by `--rpc`, loaded on demand.
 | Submission, signing, receipts | not implemented (R08) |
 | GenVM denial tests | specified in `docs/GENVM-TESTS.md`, not yet run on the real runtime |
 | Any authority over ODIR's host | none, by design |
+| SnapLink work-evidence contract rules (binding, access, duplicates, fail-closed) | 13 tests on the real SDK in `gltest` direct mode, LLM mocked; `genvm-lint check` passes |
+| SnapLink work-evidence on Studionet | live run 2026-11-17 `dryrun1`: deploy + 4 scenarios decided `ACCEPTED`/`MAJORITY_AGREE` (`docs/DEPLOYMENTS.md`); finality not observed |
 
 A `PASS` from the contract is a reviewed opinion about approved public text. It becomes permission
 to do anything only inside ODIR, after ODIR's own checks, under ODIR's own policy.
