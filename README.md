@@ -24,6 +24,8 @@ docs/DEPLOYMENTS.md               what is deployed where, the live observation, 
 docs/GENVM-TESTS.md               the denial and failure cases the contract must pass on the real runtime
 docs/CONTRACT-V2.md               expiry, revocation and package binding: the next contract version
 docs/ARCHITECTURE-TIERS.md        developer tool → team governance → enterprise platform
+factory/                          contract factory: an MCP server writes contracts, the owner signs and deploys
+.mcp.json · .claude/settings.json the factory's MCP server (genskill-mcp@2.3.3) and what it may not do
 ```
 
 ## Quick start

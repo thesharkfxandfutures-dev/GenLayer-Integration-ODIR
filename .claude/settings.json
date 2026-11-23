@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "deny": [
+      "mcp__genskill__genlayer_submit_raw_transaction",
+      "mcp__genskill__genlayer_raw_rpc",
+      "Bash(genlayer deploy:*)",
+      "Bash(genlayer write:*)",
+      "Bash(genlayer account:*)",
+      "Bash(genlayer keygen:*)",
+      "Bash(npx genlayer deploy:*)",
+      "Bash(npx genlayer write:*)",
+      "Bash(git push origin main:*)",
+      "Bash(gh pr merge:*)"
+    ]
+  }
+}
