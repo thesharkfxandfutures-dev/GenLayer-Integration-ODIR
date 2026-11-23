@@ -2,7 +2,7 @@
 
 Scheduled factory run (cloud workspace, genskill MCP through the owner's computer link).
 Branch `factory/work_evidence_review-2026-11-23` from `main` `f0a4525`. Backlog item 1.
-Pull request: PR_LINK
+Pull request: https://github.com/thesharkfxandfutures-dev/GenLayer-Integration-ODIR/pull/2 (label `contract-factory`, created by this run)
 
 ## Output
 
