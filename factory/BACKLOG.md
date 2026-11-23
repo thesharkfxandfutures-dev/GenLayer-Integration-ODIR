@@ -21,7 +21,7 @@ Decide whether a piece of completed creative work meets its brief.
 - **Must refuse:** a hash that does not match the supplied evidence text; the same case twice
   (`DUPLICATE_SUBMISSION`); an empty brief.
 
-## 2. listing_compliance_check — `todo`
+## 2. listing_compliance_check — `drafted (PR #3)`
 
 Check a marketplace listing against a published rulebook before it goes live.
 
