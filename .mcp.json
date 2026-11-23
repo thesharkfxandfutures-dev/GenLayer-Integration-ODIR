@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "genskill": {
+      "command": "npx",
+      "args": ["-y", "genskill-mcp@2.3.3"]
+    }
+  }
+}
