@@ -11,9 +11,11 @@ commands. The owner signs and deploys by hand. Read-only RPC through the MCP ser
 (network status, transaction status and receipts, `gen_call` reads and deploy *simulations*):
 nothing is signed or sent.
 
-**Network: Studionet** (`studionet`, `https://studio.genlayer.com/api`, chain 61999, gasless),
-the owner's choice on 24 Nov 2026 while Bradbury is out of reach (until 27 Nov). To go back,
-change this paragraph and §6 to `testnet-bradbury` and restore the faucet line there.
+**Network: Studionet** (`studionet`, `https://studio.genlayer.com/api`, chain 61999), the
+owner's choice on 24 Nov 2026 while Bradbury is out of reach (until 27 Nov). Studionet is not
+gasless any more: a deploy without fees reverts `FeeValueMustBeNonZero(1)`, so §6 passes a fee
+estimate. To go back, change this paragraph and §6 to `testnet-bradbury` and add the faucet
+step there.
 
 ## Owner's rules (24 Nov 2026)
 
@@ -112,14 +114,25 @@ parts:
 
 **Studionet check**: passed, or NOT_RUN with the error, and why the pull request is a draft.
 
-**Deploy and sign (owner, by hand)**
+**Deploy and sign (owner, by hand)**, from a checkout of the pull request's branch. Use your
+own CLI account; the factory never touches keys. Studio refuses zero-fee transactions, and
+`genlayer@0.40.0` sends zero fees unless told otherwise, so pass a fee estimate.
+
+Bash:
 ```bash
 npm install -g genlayer@0.40.0
 genlayer network set studionet
-# Studionet is gasless: no faucet. Use your own CLI account; the factory never touches keys.
-genlayer deploy --contract contracts/factory/<slug>.py
+genlayer deploy --contract contracts/factory/<slug>.py --fees "$(genlayer estimate-fees --fee-preset standard --json)"
 ```
-Then write the address and transaction into `docs/DEPLOYMENTS.md` (source sha256 and runner id
+Windows PowerShell 5.1 (the `-replace` keeps the JSON's quotes intact):
+```powershell
+npm install -g genlayer@0.40.0
+genlayer network set studionet
+$fees = genlayer estimate-fees --fee-preset standard --json
+genlayer deploy --contract contracts/factory/<slug>.py --fees ($fees -replace '"','\"')
+```
+Check it (read-only): `genlayer receipt <transaction hash>` and
+`genlayer call <address> <a view method>`. Then write the address and transaction into `docs/DEPLOYMENTS.md` (source sha256 and runner id
 beside it), set the backlog item to `deployed studionet <address>`, and post the transaction
 hash and address on the pull request for §4.3.
 
