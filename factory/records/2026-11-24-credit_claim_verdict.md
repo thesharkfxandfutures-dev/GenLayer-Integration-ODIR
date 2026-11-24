@@ -95,3 +95,21 @@ pull request was opened and labelled with the GitHub MCP tools (REST), because t
 VERDICT: DRAFTED (draft PR) — lint clean and 16 direct-mode tests pass with mocked web and model;
 deployed by the owner on Studionet with a successful constructor (`ACCEPTED`); finality, a view
 read and the MCP server's own Studionet check are still outstanding.
+
+## Follow-up Studionet check — 24 Nov 2026, 21:46–21:50 UTC (scheduled factory run)
+
+Through the genskill MCP server as the owner's claude.ai connector (cloud session; not the
+computer link). Read-only RPC only: nothing signed or sent.
+
+| Check | Attempt | Result | Grade | Evidence |
+|---|---|---|---|---|
+| Reachability | 1 | pass | OBSERVED | `genlayer_network_status`: endpoint `https://studio.genlayer.com/api`, health `healthy`, chain id `0xf22f` (61999), block `0x6b06059e`, not syncing |
+| Transaction report | 1 | tool error | NOT_RUN | `genlayer_run_transaction_report` (with the contract address): `Internal database error (code -32603)`; `genlayer_get_transaction_receipt`: `Method not found: gen_getTransactionReceipt` on hosted Studionet. Tooling, not the contract |
+| Transaction report | 2 | pass | OBSERVED | `genlayer_get_transaction_status` → `FINALIZED` (code 7). `genlayer_inspect_transaction` on `0xb364980e4883bf1625c40227d593372ebc4ede750ed0bcc8e68a8f7727d5763b`: status `FINALIZED`, `result_name` `MAJORITY_AGREE`, `txExecutionResultName` `FINISHED_WITH_RETURN`, leader `SUCCESS`, five initial validators, votes 4 `agree` + 1 `idle` (cancelled after quorum), `isAppealable` false, finality phase `final`; `contract_address` `0xd32E01eF391E4e4faC394e0EC8aCdC242C0E5e9a` |
+| Deployed code = this branch | 1 | match | OBSERVED | the transaction's `contract_code` (base64) decoded to 24,550 bytes with sha256 `d5154998faa345ae7b95a8963e92113baf6675243f41b564148ebe064bad3611`, identical to `contracts/factory/credit_claim_verdict.py` on this branch |
+| View read | 1 | pass | OBSERVED | `genlayer_call_contract` type `read`, `to` `0xd32E01eF…5e9a`, method `get_claim_count`, no args (calldata encoded as genlayer-js 0.18.4 `readContract` does) → `01`, which decodes to `0`: the deployed contract answers and holds no claims yet |
+| Schema | 1 | not supported | NOT_RUN | `genlayer_get_contract_snapshot` / `genlayer_get_contract_interface`: "not supported on studionet-hosted"; hosted Studionet has no `gen_getContractSchema`. Superseded here by the finalized deploy and the view read |
+
+Studionet check: **passed** (deploy finalized with majority agreement, deployed code matches this
+branch, a view method answers). Not covered: any write method on Studionet, and the model's
+judgment on a real post.
