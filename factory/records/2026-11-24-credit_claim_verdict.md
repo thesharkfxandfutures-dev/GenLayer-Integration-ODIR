@@ -43,8 +43,11 @@ Class `CreditClaimVerdict`, constructor takes no arguments; no owner or admin ro
 | Real post pages read as expected | NOT_RUN | only hand-written HTML was used. Pages that build the post with JavaScript (several large social sites) may serve little or no post text to `gl.nondet.web.get` |
 | Runs on GenVM; loads, deploys and finalizes on a network | NOT_RUN | not until the owner deploys. Direct mode runs the SDK in CPython, not the GenVM interpreter, and has no consensus, gas or storage encoding |
 | `genlayer network set studionet` selects Studionet | OBSERVED (static) | `genlayer@0.40.0` package unpacked and read, not run: `network set [network]` accepts built-in aliases; `BUILT_IN_NETWORKS` includes `studionet` (`https://studio.genlayer.com/api`, chain 61999). The old `RUN.md` form `genlayer network <name>` is not a command in this version |
-| Studionet is gasless (no faucet) | CLAIMED | MCP rules resource: "studionet is gasless; testnets need funded accounts" |
-| Deploy steps in the pull request | CLAIMED | `factory/RUN.md` as amended for Studionet in the process pull request opened alongside this one |
+| Studionet is gasless (no faucet) | **CONTRADICTED** | the MCP rules resource says "studionet is gasless", but the owner's first deploy reverted `FeeValueMustBeNonZero(1)`: Studio now refuses transactions sent with zero fees (genlayer-js PR #237, closed unmerged, describes it). Deploys need a fee estimate, see below |
+| Deploy steps in the pull request | OBSERVED (owner) | the steps without fees failed; with `genlayer estimate-fees --fee-preset standard --json` passed to `--fees`, the owner's deploy succeeded (below). The PR body and `RUN.md` now carry the working steps |
+| **Deployed on Studionet; constructor ran** | **OBSERVED (owner's terminal)** | owner's `genlayer deploy` (genlayer@0.40.0, Windows PowerShell 5.1) printed transaction `0xb364980e4883bf1625c40227d593372ebc4ede750ed0bcc8e68a8f7727d5763b`, contract `0xd32E01eF391E4e4faC394e0EC8aCdC242C0E5e9a`, consensus `ACCEPTED`, "Contract deployed successfully". The CLI prints that only after `assertSuccessfulExecution` accepts the receipt, which otherwise raises "decided as …; leader execution result …" (read in the package source). Source deployed: the file on this branch, by the owner's checkout; its sha256 on the owner's disk was asked for but not seen here |
+| Finalized; view read answers on Studionet | NOT_RUN | status was `ACCEPTED` at the time of the paste; `genlayer receipt` and `genlayer call … get_claim_count` not yet run |
+| Studionet check through the MCP server (after deploy) | NOT_RUN | `genlayer_get_transaction_status`, `genlayer_get_transaction_receipt` and `genlayer_run_transaction_report` on the deploy hash: all "fetch failed". The owner's own CLI on the same computer reached Studionet, so the failure is specific to the MCP server process |
 
 ## Attempts (owner's rule: up to three, each retry after a change backed by the failed attempt's evidence)
 
@@ -54,7 +57,10 @@ Class `CreditClaimVerdict`, constructor takes no arguments; no owner or admin ro
 | Tests | 1 | 16 failed | `DecodingError: unexpected end of memory` at contract load under genlayer-test 0.30.0; PR #2's 10 previously passing tests failed the same way | pin genlayer-test 0.29.2 (tooling, not the contract); PR #2's tests then 10 passed |
 | Tests | 2 | 16 failed | `AttributeError: 'bytes' object has no attribute 'as_hex'`: the 0.29.2 fixtures hand back raw bytes for test addresses | test helper `creator_hex` accepts bytes (test file only; contract unchanged) |
 | Tests | 3 | 16 passed | — | — |
-| Studionet | 1–3 | `fetch failed` | `genlayer_network_status` three times across the session, plus capability probes, schema and deploy simulation | none: the cause is the network path from the owner's computer, not the contract, so the contract is not failed; NOT_RUN and the PR stays a draft |
+| Owner's deploy | 1 | reverted `FeeValueMustBeNonZero(1)`, tx `0x7c30f936d82d837c1514f55b53bd452935ad3ea80ece1297895673e244d189fb` | CLI 0.40.0 sends zero fees when none are given; Studio refuses that before the contract runs | tooling, not the contract: pass a Studio fee estimate (`estimate-fees --fee-preset standard --json` → `--fees`) |
+| Owner's deploy | 2 | `ACCEPTED`, execution successful | tx `0xb364980e…5763b`, contract `0xd32E01eF…5e9a` | — |
+| MCP after deploy | 1–3 | `fetch failed` | status, receipt, transaction report on the deploy hash | none: server-side network problem, not the contract |
+| Studionet (before deploy) | 1–3 | `fetch failed` | `genlayer_network_status` three times across the session, plus capability probes, schema and deploy simulation | none: the cause is the network path from the owner's computer, not the contract, so the contract is not failed; NOT_RUN and the PR stays a draft |
 
 ## Choices the owner may want to change
 
@@ -87,4 +93,5 @@ pull request was opened and labelled with the GitHub MCP tools (REST), because t
 `gh` CLI is limited to search.
 
 VERDICT: DRAFTED (draft PR) — lint clean and 16 direct-mode tests pass with mocked web and model;
-the Studionet check has not run; unproven on GenVM and on any network until the owner deploys.
+deployed by the owner on Studionet with a successful constructor (`ACCEPTED`); finality, a view
+read and the MCP server's own Studionet check are still outstanding.
