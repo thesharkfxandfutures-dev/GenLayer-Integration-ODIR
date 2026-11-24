@@ -68,7 +68,7 @@ report its own version, so that it runs 2.3.3 is not verified.
 | The tests can fail | OBSERVED | three mutations, each run then reverted (file sha256 `9336ac70…2727a` unchanged afterwards, then 14 passed): `CASE_CLOSED` check removed from `submit_reason` → 2 failed (both reason-after-close tests); any band accepted on a justified verdict → 1 failed (`test_refuses_a_severity_outside_the_bands`); validator ignores the band → 1 failed (`test_validator_agrees_on_verdict_and_band_not_the_wording`) |
 | Studionet reachable through the MCP server | OBSERVED | `genlayer_network_status` 21:56 UTC: endpoint `https://studio.genlayer.com/api`, health `healthy`, chain id `0xf22f`, block `0x6b060805`, not syncing |
 | Schema from Studionet | NOT_RUN | `genlayer_get_contract_schema` with base64 of the file: `unsupported_contract_rpc`, "Hosted Studionet does not currently provide reliable contract RPC methods like gen_getContractState/gen_getContractCode/gen_getContractSchema", upstream `Internal database error (code -32603)`. Endpoint limitation, not retried |
-| Deploy simulation on Studionet | NOT_RUN | `genlayer_call_contract` type `deploy` (simulation, nothing signed or sent) with the orchestrator's encoder output (`glcall.mjs deploy … '[]'`, 32,737 hex characters, sha256 of the hex file `1c18d744…74ce`): both attempts → `RLP string ends with 16367 superfluous bytes (code -32603)`. The calldata had to be pasted by hand into the tool call, and the builder's paste contained a transcription slip (an extra hex digit near the `close_case` definition, found on review after the second attempt), so the node received malformed RLP, not this contract. Tooling, not the contract: no contract change; the PR stays a draft until a deploy simulation or the owner's deploy passes |
+| Deploy simulation on Studionet | OBSERVED | `genlayer_call_contract` type `deploy` (simulation via `gen_call`; nothing signed or sent), `from`/`to` the zero address, `data` = the orchestrator's encoder output (`glcall.mjs deploy contracts/factory/conduct_reason_review.py '[]'`, 32,737 hex characters, sha256 of the hex file `1c18d74447c56e5c768bbf2033b749e00e2aef1d574cdb004f57287f907e74ce`). Attempt 3 at 22:05 UTC returned `"00"`, which `glcall.mjs decode` gives as `null`: the hosted Studionet GenVM loaded this contract and the constructor returned. Attempts 1–2 failed with `RLP string ends with 16367 superfluous bytes (code -32603)` because the hand-pasted calldata had a transcription slip (`…6465662063` + `36c6f7365…`, an extra `3` before `def close_case`); attempt 3 corrected that slip only. The calldata is pasted by hand, so byte identity with the file is not machine-checked; a successful load of a parseable contract is the evidence |
 | The model's judgment is sound | NOT_RUN | every LLM call in the tests is mocked; no real model has judged a case |
 | Runs on GenVM; deploys and finalizes on a network; consensus between real validators | NOT_RUN | not until the owner deploys. Direct mode runs the SDK in CPython, without consensus, gas or storage encoding |
 
@@ -81,7 +81,8 @@ report its own version, so that it runs 2.3.3 is not verified.
 | Studionet reachability | 1 | pass | `healthy`, chain `0xf22f` | — |
 | Studionet schema | 1 | not supported | hosted Studionet has no `gen_getContractSchema` | none (endpoint limitation) |
 | Studionet deploy simulation | 1 | tool error | `RLP string ends with 16367 superfluous bytes (code -32603)` | none to the contract: re-pasted the calldata |
-| Studionet deploy simulation | 2 | tool error | same error; the hand-pasted hex still carried the same slip | none to the contract; out of time in this run (NOT_RUN). Next try: send the calldata from a file rather than by hand |
+| Studionet deploy simulation | 2 | tool error | same error; the hand-pasted hex still carried the same slip | none to the contract: located the slip (extra `3` at the `def close_case` boundary) and corrected the paste |
+| Studionet deploy simulation | 3 | pass | `"00"` → `null` (constructor returned) | — |
 
 ## Choices the owner may want to change
 
@@ -149,7 +150,9 @@ through the MCP server (network status, schema request, deploy simulation via `g
 |---|---|---|---|---|
 | Reachability | 1 | pass | OBSERVED | `genlayer_network_status` 21:56 UTC: `https://studio.genlayer.com/api`, `healthy`, chain `0xf22f`, block `0x6b060805`, `syncing: false` |
 | Schema | 1 | not supported | NOT_RUN | `unsupported_contract_rpc` on `studionet-hosted`; upstream `Internal database error (code -32603)` |
-| Deploy simulation | 1–2 | tool error | NOT_RUN | `RLP string ends with 16367 superfluous bytes (code -32603)`: hand-pasted calldata malformed (builder's transcription slip), not the contract |
+| Deploy simulation | 1–2 | tool error | — | `RLP string ends with 16367 superfluous bytes (code -32603)`: hand-pasted calldata malformed (builder's transcription slip), not the contract |
+| Deploy simulation | 3 | pass | OBSERVED | `"00"`, decoded `null`: contract loaded on hosted Studionet GenVM and the no-argument constructor returned |
 
-Studionet check: **NOT_RUN** (reachability passed; schema unsupported on the hosted endpoint; deploy
-simulation not completed). The pull request stays a draft.
+Pre-deploy Studionet check: **passed** for reachability and deploy simulation; schema NOT_RUN
+(endpoint limitation). The after-deploy part (transaction report and a view read once the owner
+deploys and posts the hash) is still outstanding, so the pull request stays a draft until then.
