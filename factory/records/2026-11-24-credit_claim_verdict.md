@@ -3,7 +3,7 @@
 Factory run on the owner's request in the scheduled session (cloud workspace, genskill MCP through
 the owner's computer link). Branch `factory/credit_claim_verdict-2026-11-24` from `main` `f0a4525`.
 Backlog item 3.
-Pull request: opened by this run as a draft, label `contract-factory`; number in `factory/BACKLOG.md`.
+Pull request: https://github.com/thesharkfxandfutures-dev/GenLayer-Integration-ODIR/pull/4 (draft, label `contract-factory`, created by this run)
 
 The scheduled run stopped first on the two-PR cap (#2, #3 open). The owner then wrote in the
 session: "use studio net for testing and mpc as i cant acsess bradbury test net till 27th i want to
@@ -45,6 +45,16 @@ Class `CreditClaimVerdict`, constructor takes no arguments; no owner or admin ro
 | `genlayer network set studionet` selects Studionet | OBSERVED (static) | `genlayer@0.40.0` package unpacked and read, not run: `network set [network]` accepts built-in aliases; `BUILT_IN_NETWORKS` includes `studionet` (`https://studio.genlayer.com/api`, chain 61999). The old `RUN.md` form `genlayer network <name>` is not a command in this version |
 | Studionet is gasless (no faucet) | CLAIMED | MCP rules resource: "studionet is gasless; testnets need funded accounts" |
 | Deploy steps in the pull request | CLAIMED | `factory/RUN.md` as amended for Studionet in the process pull request opened alongside this one |
+
+## Attempts (owner's rule: up to three, each retry after a change backed by the failed attempt's evidence)
+
+| Check | Attempt | Result | Evidence | Change before the next attempt |
+|---|---|---|---|---|
+| Lint | 1 | pass | 0 errors, 0 warnings | — |
+| Tests | 1 | 16 failed | `DecodingError: unexpected end of memory` at contract load under genlayer-test 0.30.0; PR #2's 10 previously passing tests failed the same way | pin genlayer-test 0.29.2 (tooling, not the contract); PR #2's tests then 10 passed |
+| Tests | 2 | 16 failed | `AttributeError: 'bytes' object has no attribute 'as_hex'`: the 0.29.2 fixtures hand back raw bytes for test addresses | test helper `creator_hex` accepts bytes (test file only; contract unchanged) |
+| Tests | 3 | 16 passed | — | — |
+| Studionet | 1–3 | `fetch failed` | `genlayer_network_status` three times across the session, plus capability probes, schema and deploy simulation | none: the cause is the network path from the owner's computer, not the contract, so the contract is not failed; NOT_RUN and the PR stays a draft |
 
 ## Choices the owner may want to change
 
