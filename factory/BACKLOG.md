@@ -10,7 +10,7 @@ Statuses: `todo` → `drafted (PR #n)` (factory) → `deployed <network> <addres
 
 ---
 
-## 1. work_evidence_review — `todo`
+## 1. work_evidence_review — `drafted (PR #2)`
 
 Decide whether a piece of completed creative work meets its brief.
 
