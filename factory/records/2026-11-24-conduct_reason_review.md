@@ -67,8 +67,8 @@ report its own version, so that it runs 2.3.3 is not verified.
 | Validators agree on verdict AND band, not the wording | OBSERVED (direct mode) | `direct_vm.run_validator()`: same verdict and band with another clause and reason → `True`; same verdict, other band → `False`; other verdict → `False`; validator's model answers out of bands → `False`; leader clause not in the terms → `False`; leader band out of bands, or a real band on a not-justified verdict → `False`; leader verdict not a known word → `False`; leader error → `False`; a well-formed matching leader result → `True`. Real multi-validator consensus: NOT_RUN |
 | The tests can fail | OBSERVED | three mutations, each run then reverted (file sha256 `9336ac70…2727a` unchanged afterwards, then 14 passed): `CASE_CLOSED` check removed from `submit_reason` → 2 failed (both reason-after-close tests); any band accepted on a justified verdict → 1 failed (`test_refuses_a_severity_outside_the_bands`); validator ignores the band → 1 failed (`test_validator_agrees_on_verdict_and_band_not_the_wording`) |
 | Studionet reachable through the MCP server | OBSERVED | `genlayer_network_status` 21:56 UTC: endpoint `https://studio.genlayer.com/api`, health `healthy`, chain id `0xf22f`, block `0x6b060805`, not syncing |
-| Schema from Studionet | see Studionet section | |
-| Deploy simulation on Studionet | see Studionet section | |
+| Schema from Studionet | NOT_RUN | `genlayer_get_contract_schema` with base64 of the file: `unsupported_contract_rpc`, "Hosted Studionet does not currently provide reliable contract RPC methods like gen_getContractState/gen_getContractCode/gen_getContractSchema", upstream `Internal database error (code -32603)`. Endpoint limitation, not retried |
+| Deploy simulation on Studionet | NOT_RUN | `genlayer_call_contract` type `deploy` (simulation, nothing signed or sent) with the orchestrator's encoder output (`glcall.mjs deploy … '[]'`, 32,737 hex characters, sha256 of the hex file `1c18d744…74ce`): both attempts → `RLP string ends with 16367 superfluous bytes (code -32603)`. The calldata had to be pasted by hand into the tool call, and the builder's paste contained a transcription slip (an extra hex digit near the `close_case` definition, found on review after the second attempt), so the node received malformed RLP, not this contract. Tooling, not the contract: no contract change; the PR stays a draft until a deploy simulation or the owner's deploy passes |
 | The model's judgment is sound | NOT_RUN | every LLM call in the tests is mocked; no real model has judged a case |
 | Runs on GenVM; deploys and finalizes on a network; consensus between real validators | NOT_RUN | not until the owner deploys. Direct mode runs the SDK in CPython, without consensus, gas or storage encoding |
 
@@ -79,6 +79,9 @@ report its own version, so that it runs 2.3.3 is not verified.
 | Lint | 1 | pass | 0 errors, 0 warnings, 0 info | — |
 | Tests | 1 | pass | `14 passed in 0.29s` | — |
 | Studionet reachability | 1 | pass | `healthy`, chain `0xf22f` | — |
+| Studionet schema | 1 | not supported | hosted Studionet has no `gen_getContractSchema` | none (endpoint limitation) |
+| Studionet deploy simulation | 1 | tool error | `RLP string ends with 16367 superfluous bytes (code -32603)` | none to the contract: re-pasted the calldata |
+| Studionet deploy simulation | 2 | tool error | same error; the hand-pasted hex still carried the same slip | none to the contract; out of time in this run (NOT_RUN). Next try: send the calldata from a file rather than by hand |
 
 ## Choices the owner may want to change
 
@@ -145,5 +148,8 @@ through the MCP server (network status, schema request, deploy simulation via `g
 | Check | Attempt | Result | Grade | Evidence |
 |---|---|---|---|---|
 | Reachability | 1 | pass | OBSERVED | `genlayer_network_status` 21:56 UTC: `https://studio.genlayer.com/api`, `healthy`, chain `0xf22f`, block `0x6b060805`, `syncing: false` |
-| Schema | — | pending | NOT_RUN | (filled in below if run) |
-| Deploy simulation | — | pending | NOT_RUN | (filled in below if run) |
+| Schema | 1 | not supported | NOT_RUN | `unsupported_contract_rpc` on `studionet-hosted`; upstream `Internal database error (code -32603)` |
+| Deploy simulation | 1–2 | tool error | NOT_RUN | `RLP string ends with 16367 superfluous bytes (code -32603)`: hand-pasted calldata malformed (builder's transcription slip), not the contract |
+
+Studionet check: **NOT_RUN** (reachability passed; schema unsupported on the hosted endpoint; deploy
+simulation not completed). The pull request stays a draft.
