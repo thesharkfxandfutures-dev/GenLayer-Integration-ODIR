@@ -60,6 +60,19 @@ Known events from the same session worth keeping as test cases:
 - registration attempts whose transactions finalised **with an execution error** (finality is not success);
 - a mock that accepted `Address` strings differently from the pinned runtime hid a deployment failure.
 
+## Contract factory: credit_claim_verdict on Studionet (owner, 24 Nov 2026)
+
+| Field | Value | Status |
+|---|---|---|
+| Contract | `0xd32E01eF391E4e4faC394e0EC8aCdC242C0E5e9a` | owner-supplied from the CLI output; explorer: https://explorer-studio.genlayer.com/address/0xd32E01eF391E4e4faC394e0EC8aCdC242C0E5e9a |
+| Deploy transaction | `0xb364980e4883bf1625c40227d593372ebc4ede750ed0bcc8e68a8f7727d5763b` | consensus `ACCEPTED` at the time of the paste; leader execution successful per the CLI; FINALIZED not yet seen |
+| Source | `contracts/factory/credit_claim_verdict.py` on `factory/credit_claim_verdict-2026-11-24` (PR #4), sha256 `d5154998faa345ae7b95a8963e92113baf6675243f41b564148ebe064bad3611` | **claimed** code identity: deployed from the owner's checkout of this branch; the deployed bytes have not been compared |
+| Runner | `py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6` | pinned in source |
+| Client | `genlayer@0.40.0` CLI, `network set studionet`, fees from `estimate-fees --fee-preset standard` | a first attempt without fees reverted `FeeValueMustBeNonZero(1)` (tx `0x7c30f936…189fb`) |
+
+Not yet established: finality, any view read, any claim or decision on the deployed contract, the
+deployed code identity, and the MCP server's own check (its requests fail with `fetch failed`).
+
 ## Rules for the next deployment
 
 1. Record the exact source sha256 and the runner id beside the new address, here, before use.

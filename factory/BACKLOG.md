@@ -31,7 +31,7 @@ Check a marketplace listing against a published rulebook before it goes live.
 - **Must refuse:** an unknown rulebook version; a listing longer than the stated limit; a second
   verdict on the same listing hash.
 
-## 3. credit_claim_verdict — `todo`
+## 3. credit_claim_verdict — `deployed studionet 0xd32E01eF391E4e4faC394e0EC8aCdC242C0E5e9a`
 
 Confirm that a creator is the person credited on a piece of media.
 
