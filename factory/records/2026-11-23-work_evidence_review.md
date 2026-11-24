@@ -53,3 +53,20 @@ No key held, nothing signed, deployed or submitted; `genlayer_submit_raw_transac
 
 VERDICT: DRAFTED — lint clean and direct-mode tests pass with a mocked model; unproven on GenVM
 and on any network until the owner deploys.
+
+## Follow-up Studionet check — 24 Nov 2026 (scheduled factory run)
+
+Pre-deploy check: no deploy transaction hash has been posted on PR #2 yet. Contract on this
+branch: `contracts/factory/work_evidence_review.py`, sha256
+`8781026144624fe15ed2d6026fa87ddfce2f950c100de1398dfd910cd9f4ebf4` (unchanged; contract and
+tests not touched). Read-only RPC through the genskill MCP server only; nothing signed or sent.
+
+| Check | Attempt | Result | Grade | Evidence |
+|---|---|---|---|---|
+| Reachability (`genlayer_network_status`) | 1 | Studionet reachable, 21:52 UTC | OBSERVED | endpoint `https://studio.genlayer.com/api`, chainId `0xf22f`, blockNumber `0x6b060734`, `syncing: false`, health `healthy` (genvm, database, consensus, llm_providers healthy) |
+| Schema (`genlayer_get_contract_schema`, `base64 -w0` of the contract) | 1 | refused by the endpoint, 21:57 UTC | NOT_RUN (endpoint limitation; not retried, no contract change) | `kind: unsupported_contract_rpc`, "Contract RPC operation \"get_contract_schema\" is not supported on this endpoint.", `endpoint_mode: studionet-hosted`, `upstream_error: Internal database error (code -32603)` |
+| Deploy simulation (`genlayer_call_contract`, type `deploy`, from/to `0x0000000000000000000000000000000000000000`, constructor args `[]`) | 1 | constructor ran and returned, 21:53 UTC | OBSERVED | raw returned value `"00"`, decoded `null` (constructor returned, no error). Data: genlayer-js 0.18.4 deployContract encoding of this branch file, 21,160 hex chars incl. `0x`, regenerated from the branch file and byte-identical to the orchestrator's precomputed hex |
+
+Result: passed — reachability and deploy simulation OBSERVED; schema NOT_RUN because hosted
+Studionet does not provide it. The post-deploy part (transaction report and a view read) waits
+for the owner to deploy and post the transaction hash on the PR.
