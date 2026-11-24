@@ -5,8 +5,9 @@ Each is a real job for a judgment layer (an evidence-bound decision that ordinar
 make), so every contract is worth deploying and worth a steward's time. Add, reorder or remove
 items freely; the factory only ever reads this file and flips an item's status.
 
-Statuses: `todo` → `drafted (PR #n)` (factory) → `deployed <network> <address>` (owner, by hand)
-→ `submitted` (owner, Points Portal). Only the owner writes the last two.
+Statuses: `todo` → `drafted (PR #n)` or `failed (PR #n)` (factory) → `deployed <network> <address>`
+(owner, by hand) → `submitted` (owner, Points Portal). Only the owner writes the last two, and
+only the owner sets a `failed` item back to `todo`.
 
 ---
 
