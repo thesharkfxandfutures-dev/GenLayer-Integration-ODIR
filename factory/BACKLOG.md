@@ -41,9 +41,15 @@ Confirm that a creator is the person credited on a piece of media.
 - **Must refuse:** a confirmation from an address other than the creator's; a claim on a media
   hash already verified for someone else.
 
-## 4. conduct_reason_review — `todo`
+## 4. conduct_reason_review — `drafted (PR pending)`
 
 Judge whether a late cancellation or no-show reason justifies a trust penalty.
+
+Owner page, main table, row 5 (copied; where it differs from the text below, the page wins):
+
+| # | Contract | What it decides | Inputs | Answer | Must refuse |
+|---|---|---|---|---|---|
+| 5 | conduct_reason_review | Does a late cancellation or no-show reason justify a trust penalty? | booking terms, stated reason, evidence summary + hash | PENALTY_JUSTIFIED / PENALTY_NOT_JUSTIFIED + band MINOR / STANDARD / SEVERE + clause relied on | reason sent after the case closed; severity outside the bands |
 
 - **Inputs:** the booking terms (public), the stated reason, an evidence summary and its hash.
 - **Decision:** `PENALTY_JUSTIFIED` or `PENALTY_NOT_JUSTIFIED`, and a severity band
