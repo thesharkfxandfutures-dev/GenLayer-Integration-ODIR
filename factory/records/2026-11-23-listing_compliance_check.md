@@ -66,3 +66,20 @@ search.
 
 VERDICT: DRAFTED — lint clean and direct-mode tests pass with a mocked model; unproven on GenVM
 and on any network until the owner deploys.
+
+## Follow-up Studionet check — 24 Nov 2026 (scheduled factory run)
+
+Pre-deploy check: no deploy transaction hash has been posted on PR #3 yet. Contract on this
+branch: `contracts/factory/listing_compliance_check.py`, sha256
+`bdb6f49b931598c2015d5a593c0f06df29064ce0fa0adacb407ecc29673ed65f` (unchanged; contract and
+tests not touched). Read-only RPC through the genskill MCP server only; nothing signed or sent.
+
+| Check | Attempt | Result | Grade | Evidence |
+|---|---|---|---|---|
+| Reachability (`genlayer_network_status`) | 1 | Studionet reachable, 21:52 UTC | OBSERVED | endpoint `https://studio.genlayer.com/api`, chainId `0xf22f`, blockNumber `0x6b060734`, `syncing: false`, health `healthy` (genvm, database, consensus, llm_providers healthy) |
+| Schema (`genlayer_get_contract_schema`) | — | not sent for this contract; recorded once for the run | NOT_RUN (endpoint limitation; no contract change) | the same endpoint refused the operation itself at 21:57 UTC (PR #2 contract): `kind: unsupported_contract_rpc`, "Contract RPC operation \"get_contract_schema\" is not supported on this endpoint.", `endpoint_mode: studionet-hosted`, `upstream_error: Internal database error (code -32603)`; the refusal is per endpoint, not per contract |
+| Deploy simulation (`genlayer_call_contract`, type `deploy`, from/to `0x0000000000000000000000000000000000000000`, constructor args `[]`) | 1 | constructor ran and returned, 21:55 UTC | OBSERVED | raw returned value `"00"`, decoded `null` (constructor returned, no error; in the simulation the owner is the zero sender). Data: genlayer-js 0.18.4 deployContract encoding of this branch file, 41,168 hex chars incl. `0x`, regenerated from the branch file and byte-identical to the orchestrator's precomputed hex |
+
+Result: passed — reachability and deploy simulation OBSERVED; schema NOT_RUN because hosted
+Studionet does not provide it. The post-deploy part (transaction report and a view read) waits
+for the owner to deploy and post the transaction hash on the PR.
