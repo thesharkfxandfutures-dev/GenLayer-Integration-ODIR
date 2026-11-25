@@ -59,3 +59,23 @@ Two parties claim one photograph; decide whose claim the public evidence support
   answer), with the deciding fact quoted.
 - **Must refuse:** a third claimant; a statement edited after both are in; a decision request
   before both statements exist.
+
+## 12. award_revocation_review — `drafted (PR #14)`
+
+Award contract (owner's page row 12). Any award: champion seats, percentage plaques, Verified Work
+milestones, service medals and annual awards.
+
+Does the stated reason justify revoking an issued award (evidence withdrawn, fraud found, work not in the
+role)?
+
+- **Inputs:** award reference hash, the reason, evidence summary + hash, the award's rules version (public
+  data only). The owner registers the rules (version + text) and records each issued award (award reference
+  hash, role key, award type, rules version) so that "never issued" can be checked.
+- **Decision:** `REVOKE` or `KEEP`, with the rule relied on quoted from the award rules text. Comparative
+  equivalence on the verdict word. A `REVOKE` marks the award revoked.
+- **Must refuse:** a revocation of an award never issued; a second decision on the same reason (same award
+  reference + reason hash).
+- **Award-contract rules (rows 7–12):** one universal contract for all award types and all roles (role key
+  is an input, shape checked only); refuse inputs that carry a forbidden selection signal (likes, followers,
+  votes, paid plan / subscription / premium / membership, boost) with `FORBIDDEN_SIGNAL`, because paid
+  membership must never improve anyone's chance of an award.
