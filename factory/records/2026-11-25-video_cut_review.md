@@ -3,7 +3,7 @@
 Factory run of 25 Nov 2026, builder for contract #14 of the owner's page ("Role contracts (one per role)",
 row 14, Videographer; `factory/BACKLOG.md` item 14). Cloud workspace, genskill MCP server as the owner's
 claude.ai connector. Branch `factory/video_cut_review-2026-11-25` from `main` (`f0a4525`).
-Pull request: left to the orchestrator.
+Pull request: #16 (ready for review: verifier PASS and the pre-deploy Studionet check passed; the post-deploy check waits for the owner's transaction hash).
 
 Owner's row, as given to the builder:
 
