@@ -1,0 +1,785 @@
+{
+  "schema": "odir.agreement.v1",
+  "mode": "template",
+  "title": "Photographer — Person to person engagement",
+  "notice": "Draft for review — not legal advice. A UK solicitor reviews this template before any real member signs.",
+  "base": "P2P",
+  "jurisdiction": "EW",
+  "jurisdiction_name": "England and Wales",
+  "consumer": false,
+  "roles": {
+    "engager": null,
+    "provider": "photographer"
+  },
+  "parties": [
+    {
+      "slot": "engager",
+      "label": "the Client",
+      "role": null,
+      "role_label": null,
+      "kind": "person"
+    },
+    {
+      "slot": "provider",
+      "label": "the Photographer",
+      "role": "photographer",
+      "role_label": "Photographer",
+      "kind": "person"
+    }
+  ],
+  "sources": {
+    "base": {
+      "key": "P2P",
+      "version": 1,
+      "sha256": "sha256:0403ad2a66d533b1d45dab47fea3a5a460586168890c43d038cacf6a7abca41a"
+    },
+    "engager_module": null,
+    "provider_module": {
+      "role_key": "photographer",
+      "version": 1,
+      "sha256": "sha256:28c15920d4687409c98e3444926d8826d56f328ee23889323748157ce746ed2e",
+      "stale": false
+    },
+    "overrides": {
+      "count": 0,
+      "sha256": null
+    }
+  },
+  "sections": [
+    {
+      "key": "cover",
+      "title": "Cover",
+      "clauses": [
+        {
+          "id": "p2p.parties.1",
+          "category": "parties_authority",
+          "text": "This agreement is between the Client, who books and pays, and the Photographer, who does the work. Both are individuals.",
+          "source": "base",
+          "replaces": null,
+          "locked": true,
+          "checkable": false
+        },
+        {
+          "id": "p2p.parties.business",
+          "category": "parties_authority",
+          "text": "The Client books for the purposes of their trade, business or profession, not as a consumer.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "photographer.provider.parties.1",
+          "category": "parties_authority",
+          "text": "The Photographer confirms that the portfolio on their SnapLink profile is their own work.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        }
+      ]
+    },
+    {
+      "key": "duties",
+      "title": "Role and duties",
+      "clauses": [
+        {
+          "id": "p2p.duties.1",
+          "category": "role_duties",
+          "text": "The Photographer will carry out {{engagement_summary}} with reasonable care and skill, as this agreement describes.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.duties.2",
+          "category": "role_duties",
+          "text": "The Client will give the Photographer the information and access they reasonably need to do the work, in good time.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "photographer.provider.duties.deliver",
+          "category": "role_duties",
+          "text": "The Photographer delivers {{image_count}} edited images within {{delivery_days}} days of the shoot, by {{delivery_method}}.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": true
+        },
+        {
+          "id": "photographer.provider.duties.quality",
+          "category": "role_duties",
+          "text": "The Photographer delivers the images without watermarks, at a resolution suitable for the licensed use.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": true
+        },
+        {
+          "id": "photographer.provider.duties.shotlist",
+          "category": "role_duties",
+          "text": "The Photographer photographs every item on the shot list agreed before the shoot, or records on the day why an item could not be shot.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": true
+        },
+        {
+          "id": "photographer.provider.duties.edit",
+          "category": "role_duties",
+          "text": "Editing means {{retouch_level}}. Further retouching is agreed and paid for separately.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "photographer.provider.duties.backup",
+          "category": "role_duties",
+          "text": "The Photographer keeps a backup copy of the images until delivery and for at least {{archive_days}} days after it.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": true
+        }
+      ]
+    },
+    {
+      "key": "place_time",
+      "title": "Place and time",
+      "clauses": [
+        {
+          "id": "p2p.place.1",
+          "category": "place",
+          "text": "The work takes place at {{venue}}, unless both parties agree a change in writing through SnapLink.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.place.2",
+          "category": "place",
+          "text": "Whoever controls the venue makes sure it is safe to work in and tells the other party about any known hazard before the start.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "photographer.provider.place.setup",
+          "category": "place",
+          "text": "The Photographer may need up to 30 minutes at the venue before the start to set up, and the Client arranges access for this.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.time.1",
+          "category": "time_hours",
+          "text": "The work is on {{engagement_date}}, from {{start_time}} to {{finish_time}}.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.time.2",
+          "category": "time_hours",
+          "text": "Work beyond the agreed hours happens only if both parties agree it at the time, including the rate for it, and that agreement is recorded through SnapLink.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "photographer.provider.time.arrive",
+          "category": "time_hours",
+          "text": "The Photographer arrives at the venue ready to start by {{start_time}}.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": true
+        },
+        {
+          "id": "photographer.provider.time.breaks",
+          "category": "time_hours",
+          "text": "In a shoot longer than six hours, the Photographer takes a break of at least 20 minutes.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        }
+      ]
+    },
+    {
+      "key": "pay",
+      "title": "Pay",
+      "clauses": [
+        {
+          "id": "p2p.pay.1",
+          "category": "pay",
+          "text": "The Client will pay the Photographer {{fee}} ({{rate_basis}}).",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.pay.2",
+          "category": "pay",
+          "text": "A deposit of {{deposit}} is due when both parties have signed. The balance is due within {{payment_days}} days of the work being completed.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.pay.vat",
+          "category": "pay",
+          "text": "The Photographer is {{vat_status}}.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.pay.vat_business",
+          "category": "pay",
+          "text": "Where the Photographer is registered for VAT, VAT is added to the fee at the rate in force when it is invoiced.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "photographer.provider.pay.covers",
+          "category": "pay",
+          "text": "The fee covers the shoot, the editing and delivery of the agreed number of images, and the licence in this agreement.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.expenses.1",
+          "category": "expenses_equipment",
+          "text": "Each party supplies the equipment and materials this agreement gives to them, and looks after their own equipment.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.expenses.2",
+          "category": "expenses_equipment",
+          "text": "Travel and other expenses are paid only where this agreement, or a later agreement recorded through SnapLink, says so, against receipts.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "photographer.provider.expenses.kit",
+          "category": "expenses_equipment",
+          "text": "The Photographer brings working camera equipment to the shoot, with spare batteries and memory cards.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": true
+        },
+        {
+          "id": "photographer.provider.expenses.extras",
+          "category": "expenses_equipment",
+          "text": "Prints, albums, extra edited images and props are not included unless this agreement lists them.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        }
+      ]
+    },
+    {
+      "key": "terms",
+      "title": "Terms",
+      "clauses": [
+        {
+          "id": "p2p.usage.1",
+          "category": "usage_licence",
+          "text": "Where the work produces material protected by copyright, its creator keeps the copyright. Any licence to use it is set out in this agreement, and any other use needs the creator’s written consent.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "photographer.provider.usage.business",
+          "category": "usage_licence",
+          "text": "The Client may use the delivered images in {{usage_media}}, in {{usage_territory}}, for {{usage_term}} from delivery. Each published use carries the credit “{{credit_line}}” where the medium allows.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "photographer.provider.usage.terms",
+          "category": "usage_licence",
+          "text": "The licence is non-exclusive and cannot be passed on to anyone else without the Photographer’s written consent.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.copyright.1",
+          "category": "copyright_moral_rights",
+          "text": "Nothing in this agreement assigns copyright unless a clause says so expressly, names what is assigned and states the fee for it. An assignment takes effect only when the creator has signed this agreement.",
+          "source": "base",
+          "replaces": null,
+          "locked": true,
+          "checkable": false
+        },
+        {
+          "id": "p2p.copyright.2",
+          "category": "copyright_moral_rights",
+          "text": "Moral rights cannot be assigned. They are waived only where a clause says so expressly and the creator has signed this agreement.",
+          "source": "base",
+          "replaces": null,
+          "locked": true,
+          "checkable": false
+        },
+        {
+          "id": "photographer.provider.copyright.keep",
+          "category": "copyright_moral_rights",
+          "text": "The Photographer keeps copyright in every image, including images not delivered. Raw files are not handed over.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "photographer.provider.copyright.assert",
+          "category": "copyright_moral_rights",
+          "text": "The Photographer asserts the right to be identified as the author of the images.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.safety.1",
+          "category": "safety_licences",
+          "text": "Each party follows the health and safety rules that apply at the venue and does not ask the other to do anything unsafe.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.safety.2",
+          "category": "safety_licences",
+          "text": "The Photographer holds any licence, registration or insurance that this agreement says the work needs, and shows it on request.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "photographer.provider.safety.insurance",
+          "category": "safety_licences",
+          "text": "The Photographer holds public liability insurance and shows the certificate on request.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": true
+        },
+        {
+          "id": "photographer.provider.safety.drone",
+          "category": "safety_licences",
+          "text": "If drone photography is agreed, the Photographer holds the operator and flyer registrations the Civil Aviation Authority requires and flies within its rules.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.cancel.provider",
+          "category": "cancellation_no_show",
+          "text": "If the Photographer cancels, or does not attend, the Client gets back everything paid for the cancelled work within 14 days.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.cancel.noshow",
+          "category": "cancellation_no_show",
+          "text": "A party who does not attend without telling the other is recorded on SnapLink as a no-show, unless their reason is accepted through SnapLink’s dispute route.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.cancel.business",
+          "category": "cancellation_no_show",
+          "text": "Either party may cancel by message through SnapLink. If the Client cancels less than {{notice_hours}} hours before the start, {{late_cancellation_share}} of the fee is due to the Photographer as a fair estimate of their loss.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "photographer.provider.cancel.replacement",
+          "category": "cancellation_no_show",
+          "text": "If the Photographer cannot attend because of illness or an emergency, they tell the Client at once and try to offer a suitably experienced replacement photographer. The Client may accept the replacement or cancel for a full refund.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.conf.1",
+          "category": "confidentiality_consent",
+          "text": "Each party keeps private any personal details they learn about the other through this booking, and uses them only to carry it out, as UK data protection law requires.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.conf.2",
+          "category": "confidentiality_consent",
+          "text": "No one is filmed or photographed for publication without their consent.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "photographer.provider.conf.portfolio",
+          "category": "confidentiality_consent",
+          "text": "The Photographer may use up to {{portfolio_count}} of the delivered images in their own portfolio and promotion, unless the Client asks otherwise before signing.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "photographer.provider.conf.consent",
+          "category": "confidentiality_consent",
+          "text": "The Photographer respects any request from a person at the shoot not to be photographed, and the Client tells the Photographer in advance about anyone who has asked.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        }
+      ]
+    },
+    {
+      "key": "proof_disputes",
+      "title": "Proof and disputes",
+      "clauses": [
+        {
+          "id": "p2p.proof.1",
+          "category": "proof_of_completion",
+          "text": "The work counts as done when the Photographer has carried out the duties set out in this agreement. Either party may record evidence of this through SnapLink, where it is kept privately and not published.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.proof.accept_business",
+          "category": "proof_of_completion",
+          "text": "If the Client raises no problem within 7 days of the work being completed, the work is treated as accepted.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "photographer.provider.proof.delivery",
+          "category": "proof_of_completion",
+          "text": "Delivery of the gallery with the agreed number of edited images shows that the main duty was done; SnapLink records the delivery date.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.disputes.1",
+          "category": "disputes_record",
+          "text": "A disagreement about this agreement goes first to SnapLink’s dispute route, and both parties take part in it in good faith before going elsewhere.",
+          "source": "base",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        },
+        {
+          "id": "p2p.disputes.law",
+          "category": "disputes_record",
+          "text": "This agreement is governed by the law of England and Wales, and the courts of England and Wales may decide any claim about it.",
+          "source": "base",
+          "replaces": null,
+          "locked": true,
+          "checkable": false
+        },
+        {
+          "id": "p2p.disputes.record",
+          "category": "disputes_record",
+          "text": "SnapLink keeps the signed version, the signature records and the terms hash that identifies this exact text. The terms hash may be recorded on a public blockchain; no name, address, pay or other personal detail is recorded there.",
+          "source": "base",
+          "replaces": null,
+          "locked": true,
+          "checkable": false
+        },
+        {
+          "id": "photographer.provider.disputes.reedit",
+          "category": "disputes_record",
+          "text": "The Client raises any complaint about the images within 14 days of delivery where they can, naming the images concerned, so that the Photographer can re-edit them first.",
+          "source": "provider_module",
+          "replaces": null,
+          "locked": false,
+          "checkable": false
+        }
+      ]
+    },
+    {
+      "key": "acceptance",
+      "title": "Acceptance and seal",
+      "clauses": [
+        {
+          "id": "p2p.accept.age",
+          "category": "parties_authority",
+          "text": "Each party confirms, when signing, that they are 18 or over. SnapLink keeps this confirmation with their signature record.",
+          "source": "base",
+          "replaces": null,
+          "locked": true,
+          "checkable": false
+        },
+        {
+          "id": "p2p.accept.freeze",
+          "category": "disputes_record",
+          "text": "The terms are fixed when the first party signs. Any change needs a new version signed by both parties; the earlier version is kept unchanged.",
+          "source": "base",
+          "replaces": null,
+          "locked": true,
+          "checkable": false
+        }
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "key": "engagement_summary",
+      "label": "What is being photographed",
+      "category": "role_duties",
+      "type": "text",
+      "default": null,
+      "value": null,
+      "source": "provider_module"
+    },
+    {
+      "key": "venue",
+      "label": "Venue and address",
+      "category": "place",
+      "type": "text",
+      "default": null,
+      "value": null,
+      "source": "base"
+    },
+    {
+      "key": "engagement_date",
+      "label": "Date",
+      "category": "time_hours",
+      "type": "date",
+      "default": null,
+      "value": null,
+      "source": "base"
+    },
+    {
+      "key": "start_time",
+      "label": "Start time",
+      "category": "time_hours",
+      "type": "time",
+      "default": null,
+      "value": null,
+      "source": "base"
+    },
+    {
+      "key": "finish_time",
+      "label": "Finish time",
+      "category": "time_hours",
+      "type": "time",
+      "default": null,
+      "value": null,
+      "source": "base"
+    },
+    {
+      "key": "fee",
+      "label": "Fee",
+      "category": "pay",
+      "type": "money",
+      "default": null,
+      "value": null,
+      "source": "base"
+    },
+    {
+      "key": "rate_basis",
+      "label": "Rate basis (hourly, day or fixed fee)",
+      "category": "pay",
+      "type": "text",
+      "default": "a fixed fee",
+      "value": null,
+      "source": "base"
+    },
+    {
+      "key": "deposit",
+      "label": "Deposit",
+      "category": "pay",
+      "type": "money",
+      "default": "no deposit",
+      "value": null,
+      "source": "base"
+    },
+    {
+      "key": "payment_days",
+      "label": "Days to pay the balance",
+      "category": "pay",
+      "type": "number",
+      "default": "14",
+      "value": null,
+      "source": "base"
+    },
+    {
+      "key": "vat_status",
+      "label": "Provider’s VAT status and number",
+      "category": "pay",
+      "type": "text",
+      "default": "not registered for VAT",
+      "value": null,
+      "source": "base"
+    },
+    {
+      "key": "notice_hours",
+      "label": "Cancellation notice (hours)",
+      "category": "cancellation_no_show",
+      "type": "number",
+      "default": "48",
+      "value": null,
+      "source": "base"
+    },
+    {
+      "key": "late_cancellation_share",
+      "label": "Share of the fee due on a late cancellation",
+      "category": "cancellation_no_show",
+      "type": "text",
+      "default": "50%",
+      "value": null,
+      "source": "base"
+    },
+    {
+      "key": "image_count",
+      "label": "Number of edited images",
+      "category": "role_duties",
+      "type": "number",
+      "default": "40",
+      "value": null,
+      "source": "provider_module"
+    },
+    {
+      "key": "delivery_days",
+      "label": "Days to deliver after the shoot",
+      "category": "role_duties",
+      "type": "number",
+      "default": "10",
+      "value": null,
+      "source": "provider_module"
+    },
+    {
+      "key": "delivery_method",
+      "label": "How the images are delivered",
+      "category": "role_duties",
+      "type": "text",
+      "default": "a private online gallery link",
+      "value": null,
+      "source": "provider_module"
+    },
+    {
+      "key": "retouch_level",
+      "label": "Editing included",
+      "category": "role_duties",
+      "type": "text",
+      "default": "colour correction and light retouching",
+      "value": null,
+      "source": "provider_module"
+    },
+    {
+      "key": "archive_days",
+      "label": "Days a backup is kept after delivery",
+      "category": "role_duties",
+      "type": "number",
+      "default": "90",
+      "value": null,
+      "source": "provider_module"
+    },
+    {
+      "key": "usage_media",
+      "label": "Licensed media",
+      "category": "usage_licence",
+      "type": "text",
+      "default": null,
+      "value": null,
+      "source": "provider_module"
+    },
+    {
+      "key": "usage_territory",
+      "label": "Licensed territory",
+      "category": "usage_licence",
+      "type": "text",
+      "default": "the United Kingdom",
+      "value": null,
+      "source": "provider_module"
+    },
+    {
+      "key": "usage_term",
+      "label": "Licence period",
+      "category": "usage_licence",
+      "type": "duration",
+      "default": "12 months",
+      "value": null,
+      "source": "provider_module"
+    },
+    {
+      "key": "credit_line",
+      "label": "Credit line",
+      "category": "usage_licence",
+      "type": "text",
+      "default": null,
+      "value": null,
+      "source": "provider_module"
+    },
+    {
+      "key": "portfolio_count",
+      "label": "Images the provider may use in their portfolio",
+      "category": "usage_licence",
+      "type": "number",
+      "default": "10",
+      "value": null,
+      "source": "provider_module"
+    }
+  ],
+  "style": {
+    "paper": "waxed-parchment",
+    "ink": "iron-gall",
+    "heading_font": "serif",
+    "seal_colour": "red"
+  },
+  "terms_hash": "sha256:ddee2635841fe29bdcc760f66bc167759603da1d6f76a8b28d332286e3b03fb0"
+}

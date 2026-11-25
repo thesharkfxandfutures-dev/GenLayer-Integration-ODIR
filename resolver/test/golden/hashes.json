@@ -1,0 +1,23 @@
+{
+  "base.none.P2P.EW.business": "sha256:7144b787bcbd9d42dd4959eb33137c845a07f0a653644b9b11d63d5254cfeff5",
+  "base.none.P2P.EW.consumer": "sha256:60438b366259c1097c85eb1234f8222ad6c1c3c9defcc9b84e945c10fd1f8036",
+  "base.none.P2P.SC.business": "sha256:ca9d597399bd99cd9ff6ec6446d4411f5844670c5814667a8ecf33b12c704aa4",
+  "base.none.P2P.SC.consumer": "sha256:99ab1a1b373ba57ed9297b8b3e11415c64603697b3e0fa97d700c4b1ba386d49",
+  "base.none.P2P.NI.business": "sha256:1540884b5f337684be128c36176447a2b240b500d287cc604b6c38199a285e25",
+  "base.none.P2P.NI.consumer": "sha256:601be66906e09b3e237618bcd84d52879b8b4c4c3ee4e5a47e028de0c87338fe",
+  "base.none.B2P.EW.business": "sha256:69a66918eb6076797a18618165277c17987b4228815fad257c01fcfcf5c840e5",
+  "base.none.B2P.SC.business": "sha256:8430b2656eb8a8b15cc9d46e9aaaa9d6eba2e2b0a0ae286b59c3224a86faeaf5",
+  "base.none.B2P.NI.business": "sha256:1b5d1b4b40264db9a2053ab602048c46ad9b7afd71985194ca8e0cac5df631e7",
+  "photographer.engager.P2P.EW.business": "sha256:25ef2624613a044ceedbe128ef4841f77139044421c305fe114ed49535fb77ff",
+  "photographer.engager.P2P.SC.business": "sha256:6b6eb886a9ce0b62db6ef3363a67412444380e716d7179db01e131f687117a21",
+  "photographer.engager.P2P.NI.business": "sha256:08b6cb92e97f92aacac07bb06cc5b9fcb0e9b8e4304395334090fb2cdd1db43d",
+  "photographer.provider.P2P.EW.business": "sha256:ddee2635841fe29bdcc760f66bc167759603da1d6f76a8b28d332286e3b03fb0",
+  "photographer.provider.P2P.EW.consumer": "sha256:81d37808fab030e82c40f2cf0a312dde8bbb48783213e4fc86fdfd35eebe87ec",
+  "photographer.provider.P2P.SC.business": "sha256:f2a3082dbbc9439436402e3dcea9edb996b60bec1f6486a41d02327bb92d1ff5",
+  "photographer.provider.P2P.SC.consumer": "sha256:76d4a5345b2295a045fdd3e0934b33bb1aee001e3b8d5d1ae5f40c83021a155d",
+  "photographer.provider.P2P.NI.business": "sha256:97549b486abe95b4fd5dc5f3872259be2c174781ab648916c6a605431ab7057b",
+  "photographer.provider.P2P.NI.consumer": "sha256:7b1da6cbac69a0f835d8e2e2d21cbdc08c8ac8f2aad8c403beda153deb093b4b",
+  "photographer.provider.B2P.EW.business": "sha256:7a4d11c921ed1f1dcfd9361be3f874b962f814bf56fdc89b46f5ac1b9dc2885b",
+  "photographer.provider.B2P.SC.business": "sha256:4b42e073c6c98b4ec3b55ada546fe578d00ab233e58e2a77074df9f1bd221ba3",
+  "photographer.provider.B2P.NI.business": "sha256:60b3770451d8c5d2b14bb7c37ab67b02679ec583a7928576fadef3865b7a4c14"
+}
