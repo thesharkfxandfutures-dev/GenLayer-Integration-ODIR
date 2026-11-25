@@ -29,6 +29,7 @@ export function assertSupported(schema, at = '$') {
   if (typeof schema !== 'object' || schema === null || Array.isArray(schema)) throw new Error(`schema at ${at} must be an object`);
   for (const k of Object.keys(schema)) if (!KNOWN.has(k)) throw new Error(`unsupported schema keyword "${k}" at ${at}`);
   if (schema.$ref !== undefined && refSiblings(schema).length) throw new Error(`keywords beside $ref are ignored, refusing at ${at}`);
+  if (schema.additionalProperties !== undefined && typeof schema.additionalProperties !== 'boolean') throw new Error(`additionalProperties must be true or false (a schema there is not enforced), refusing at ${at}`);
   for (const [k, v] of Object.entries(schema.properties || {})) assertSupported(v, `${at}.properties.${k}`);
   for (const [k, v] of Object.entries(schema.$defs || {})) assertSupported(v, `${at}.$defs.${k}`);
   if (schema.items !== undefined) assertSupported(schema.items, `${at}.items`);
@@ -46,6 +47,7 @@ export function validate(schema, value) {
       return walk(root.$defs[m[1]], v, at);
     }
     for (const k of Object.keys(s)) if (!KNOWN.has(k)) throw new Error(`unsupported schema keyword "${k}" at ${at}`);
+    if (s.additionalProperties !== undefined && typeof s.additionalProperties !== 'boolean') throw new Error(`additionalProperties must be true or false (a schema there is not enforced), refusing at ${at}`);
     const t = typeOf(v);
     if (s.type !== undefined) {
       const types = Array.isArray(s.type) ? s.type : [s.type];

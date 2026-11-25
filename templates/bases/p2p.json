@@ -1,0 +1,356 @@
+{
+  "schema": "odir.base-template.v1",
+  "key": "P2P",
+  "version": 1,
+  "title": "Person to person engagement",
+  "summary": "One individual books another for a single engagement: for example, a couple books a wedding photographer, or a photographer books a makeup artist. Has a consumer variant for a person booking for themselves.",
+  "engager_kind": "person",
+  "provider_kind": "person",
+  "consumer_variant": true,
+  "jurisdictions": [
+    "EW",
+    "SC",
+    "NI"
+  ],
+  "notice": "Draft for review — not legal advice. A UK solicitor reviews this template before any real member signs.",
+  "party_labels": {
+    "engager": "the Client",
+    "provider": "the Provider"
+  },
+  "clauses": [
+    {
+      "id": "p2p.parties.1",
+      "category": "parties_authority",
+      "text": "This agreement is between [[engager]], who books and pays, and [[provider]], who does the work. Both are individuals.",
+      "locked": true
+    },
+    {
+      "id": "p2p.parties.consumer",
+      "category": "parties_authority",
+      "text": "[[Engager]] books as a consumer, for their own private purposes and not for a business.",
+      "locked": true,
+      "when": {
+        "consumer": true
+      }
+    },
+    {
+      "id": "p2p.parties.business",
+      "category": "parties_authority",
+      "text": "[[Engager]] books for the purposes of their trade, business or profession, not as a consumer.",
+      "locked": true,
+      "when": {
+        "consumer": false
+      }
+    },
+    {
+      "id": "p2p.accept.age",
+      "category": "parties_authority",
+      "text": "Each party confirms, when signing, that they are 18 or over. SnapLink keeps this confirmation with their signature record.",
+      "section": "acceptance",
+      "locked": true
+    },
+    {
+      "id": "p2p.accept.freeze",
+      "category": "disputes_record",
+      "text": "The terms are fixed when the first party signs. Any change needs a new version signed by both parties; the earlier version is kept unchanged.",
+      "section": "acceptance",
+      "locked": true
+    },
+    {
+      "id": "p2p.duties.1",
+      "category": "role_duties",
+      "text": "[[Provider]] will carry out {{engagement_summary}} with reasonable care and skill, as this agreement describes."
+    },
+    {
+      "id": "p2p.duties.2",
+      "category": "role_duties",
+      "text": "[[Engager]] will give [[provider]] the information and access they reasonably need to do the work, in good time."
+    },
+    {
+      "id": "p2p.place.1",
+      "category": "place",
+      "text": "The work takes place at {{venue}}, unless both parties agree a change in writing through SnapLink."
+    },
+    {
+      "id": "p2p.place.2",
+      "category": "place",
+      "text": "Whoever controls the venue makes sure it is safe to work in and tells the other party about any known hazard before the start."
+    },
+    {
+      "id": "p2p.time.1",
+      "category": "time_hours",
+      "text": "The work is on {{engagement_date}}, from {{start_time}} to {{finish_time}}."
+    },
+    {
+      "id": "p2p.time.2",
+      "category": "time_hours",
+      "text": "Work beyond the agreed hours happens only if both parties agree it at the time, including the rate for it, and that agreement is recorded through SnapLink."
+    },
+    {
+      "id": "p2p.pay.1",
+      "category": "pay",
+      "text": "[[Engager]] will pay [[provider]] {{fee}} ({{rate_basis}})."
+    },
+    {
+      "id": "p2p.pay.2",
+      "category": "pay",
+      "text": "A deposit of {{deposit}} (£0 means none) is due when both parties have signed. The balance is due within {{payment_days}} days of the work being completed."
+    },
+    {
+      "id": "p2p.pay.vat",
+      "category": "pay",
+      "text": "[[Provider]] is {{vat_status}}."
+    },
+    {
+      "id": "p2p.expenses.1",
+      "category": "expenses_equipment",
+      "text": "Each party supplies the equipment and materials this agreement gives to them, and looks after their own equipment."
+    },
+    {
+      "id": "p2p.expenses.2",
+      "category": "expenses_equipment",
+      "text": "Travel and other expenses are paid only where this agreement, or a later agreement recorded through SnapLink, says so, against receipts."
+    },
+    {
+      "id": "p2p.usage.1",
+      "category": "usage_licence",
+      "text": "Where the work produces material protected by copyright, its creator keeps the copyright. Any licence to use it is set out in this agreement, and any other use needs the creator’s written consent."
+    },
+    {
+      "id": "p2p.copyright.1",
+      "category": "copyright_moral_rights",
+      "text": "Nothing in this agreement assigns copyright unless a clause says so expressly, names what is assigned and states the fee for it. An assignment takes effect only when the creator has signed this agreement.",
+      "locked": true
+    },
+    {
+      "id": "p2p.copyright.2",
+      "category": "copyright_moral_rights",
+      "text": "Moral rights cannot be assigned. They are waived only where a clause says so expressly and the creator has signed this agreement.",
+      "locked": true
+    },
+    {
+      "id": "p2p.safety.1",
+      "category": "safety_licences",
+      "text": "Each party follows the health and safety rules that apply at the venue and does not ask the other to do anything unsafe."
+    },
+    {
+      "id": "p2p.safety.2",
+      "category": "safety_licences",
+      "text": "[[Provider]] holds any licence, registration or insurance that this agreement says the work needs, and shows it on request."
+    },
+    {
+      "id": "p2p.cancel.provider",
+      "category": "cancellation_no_show",
+      "text": "If [[provider]] cancels, or does not attend, [[engager]] gets back everything paid for the cancelled work within 14 days."
+    },
+    {
+      "id": "p2p.cancel.noshow",
+      "category": "cancellation_no_show",
+      "text": "A party who does not attend without telling the other is recorded on SnapLink as a no-show, unless their reason is accepted through SnapLink’s dispute route."
+    },
+    {
+      "id": "p2p.conf.1",
+      "category": "confidentiality_consent",
+      "text": "Each party keeps private any personal details they learn about the other through this booking, and uses them only to carry it out, as UK data protection law requires."
+    },
+    {
+      "id": "p2p.conf.2",
+      "category": "confidentiality_consent",
+      "text": "No one is filmed or photographed for publication without their consent."
+    },
+    {
+      "id": "p2p.proof.1",
+      "category": "proof_of_completion",
+      "text": "The work counts as done when [[provider]] has carried out the duties set out in this agreement. Either party may record evidence of this through SnapLink, where it is kept privately and not published."
+    },
+    {
+      "id": "p2p.disputes.1",
+      "category": "disputes_record",
+      "text": "A disagreement about this agreement goes first to SnapLink’s dispute route, and both parties take part in it in good faith before going elsewhere."
+    },
+    {
+      "id": "p2p.disputes.law",
+      "category": "disputes_record",
+      "text": "This agreement is governed by the law of [[jurisdiction]], and [[courts]] may decide any claim about it.",
+      "locked": true
+    },
+    {
+      "id": "p2p.disputes.record",
+      "category": "disputes_record",
+      "text": "SnapLink keeps the signed version, the signature records and the terms hash that identifies this exact text. The terms hash may be recorded on a public blockchain; no name, address, pay or other personal detail is recorded there.",
+      "locked": true
+    },
+    {
+      "id": "p2p.pay.vat_consumer",
+      "category": "pay",
+      "text": "Every price in this agreement includes any VAT that is due.",
+      "locked": true,
+      "when": {
+        "consumer": true
+      }
+    },
+    {
+      "id": "p2p.pay.vat_business",
+      "category": "pay",
+      "text": "Where [[provider]] is registered for VAT, VAT is added to the fee at the rate in force when it is invoiced.",
+      "when": {
+        "consumer": false
+      }
+    },
+    {
+      "id": "p2p.cancel.business",
+      "category": "cancellation_no_show",
+      "text": "Either party may cancel by message through SnapLink. If [[engager]] cancels less than {{notice_hours}} hours before the start, {{late_cancellation_share}} of the fee is due to [[provider]] as a fair estimate of their loss.",
+      "when": {
+        "consumer": false
+      }
+    },
+    {
+      "id": "p2p.cancel.consumer_right",
+      "category": "cancellation_no_show",
+      "text": "Because this booking is made online, [[engager]] may cancel within 14 days of the day both parties sign, without giving a reason, and gets back everything paid within 14 days of cancelling.",
+      "locked": true,
+      "when": {
+        "consumer": true
+      },
+      "style": {
+        "emphasis": "boxed"
+      }
+    },
+    {
+      "id": "p2p.cancel.consumer_early",
+      "category": "cancellation_no_show",
+      "text": "If [[engager]] expressly asks for the work to start within those 14 days and then cancels within them, [[engager]] pays for the work done up to the cancellation, in proportion to the whole. If the work is fully done within those 14 days at [[engager]]’s express request, and [[engager]] acknowledged that the right to cancel would then end, it ends.",
+      "locked": true,
+      "when": {
+        "consumer": true
+      },
+      "style": {
+        "emphasis": "boxed"
+      }
+    },
+    {
+      "id": "p2p.cancel.consumer_late",
+      "category": "cancellation_no_show",
+      "text": "After those 14 days, [[engager]] may still cancel by message through SnapLink. If they cancel less than {{notice_hours}} hours before the start, {{late_cancellation_share}} of the fee is due to [[provider]] as a fair estimate of their loss, and anything paid above that is returned.",
+      "when": {
+        "consumer": true
+      }
+    },
+    {
+      "id": "p2p.proof.accept_business",
+      "category": "proof_of_completion",
+      "text": "If [[engager]] raises no problem within 7 days of the work being completed, the work is treated as accepted.",
+      "when": {
+        "consumer": false
+      }
+    },
+    {
+      "id": "p2p.proof.consumer_rights",
+      "category": "proof_of_completion",
+      "text": "Nothing in this agreement limits [[engager]]’s statutory rights as a consumer, including the right to have the service carried out with reasonable care and skill.",
+      "locked": true,
+      "when": {
+        "consumer": true
+      },
+      "style": {
+        "emphasis": "strong"
+      }
+    },
+    {
+      "id": "p2p.disputes.consumer_court",
+      "category": "disputes_record",
+      "text": "As a consumer, [[engager]] may also bring a claim in the part of the United Kingdom where they live.",
+      "locked": true,
+      "when": {
+        "consumer": true
+      }
+    }
+  ],
+  "fields": [
+    {
+      "key": "engagement_summary",
+      "label": "What the work is",
+      "category": "role_duties",
+      "type": "text"
+    },
+    {
+      "key": "venue",
+      "label": "Venue and address",
+      "category": "place",
+      "type": "text"
+    },
+    {
+      "key": "engagement_date",
+      "label": "Date",
+      "category": "time_hours",
+      "type": "date"
+    },
+    {
+      "key": "start_time",
+      "label": "Start time",
+      "category": "time_hours",
+      "type": "time"
+    },
+    {
+      "key": "finish_time",
+      "label": "Finish time",
+      "category": "time_hours",
+      "type": "time"
+    },
+    {
+      "key": "fee",
+      "label": "Fee",
+      "category": "pay",
+      "type": "money"
+    },
+    {
+      "key": "rate_basis",
+      "label": "Rate basis (hourly, day or fixed fee)",
+      "category": "pay",
+      "type": "text",
+      "default": "a fixed fee"
+    },
+    {
+      "key": "deposit",
+      "label": "Deposit",
+      "category": "pay",
+      "type": "money",
+      "default": "£0"
+    },
+    {
+      "key": "payment_days",
+      "label": "Days to pay the balance",
+      "category": "pay",
+      "type": "number",
+      "default": "14"
+    },
+    {
+      "key": "vat_status",
+      "label": "Provider’s VAT status and number",
+      "category": "pay",
+      "type": "text",
+      "default": "not registered for VAT"
+    },
+    {
+      "key": "notice_hours",
+      "label": "Cancellation notice (hours)",
+      "category": "cancellation_no_show",
+      "type": "number",
+      "default": "48"
+    },
+    {
+      "key": "late_cancellation_share",
+      "label": "Share of the fee due on a late cancellation",
+      "category": "cancellation_no_show",
+      "type": "text",
+      "default": "50%"
+    }
+  ],
+  "style": {
+    "paper": "waxed-parchment",
+    "ink": "iron-gall",
+    "heading_font": "serif",
+    "seal_colour": "red"
+  }
+}

@@ -29,7 +29,13 @@ brain/                            ODIR Brain loop skeleton (A2, dry run): lease 
 brain/QUEUE.md                    the owner's queue order and the pinned SnapLink registry hash
 schema/inspector-snapshot.v1.json the Inspector's snapshot of SnapLink's role registry (odir-inspector-snapshot/1)
 schema/brain-run.v1.json          one Brain run record (odir-brain-run/1)
-.github/workflows/brain-ci.yml    CI: Brain tests, schema gate, adapter tests (read-only token, no secrets)
+schema/base-template.v1.json      one relationship base: P2P, P2B, B2P, B2B or STAFF (odir.base-template.v1)
+schema/role-template.v1.json      one role duty module, engager and provider sides (odir.role-template.v1)
+schema/agreement.v1.json          one resolved document, what the parchment shows and the parties sign (odir.agreement.v1)
+templates/bases/                  the bases (A3 pilot: p2p.json, b2p.json) — drafts for review, not legal advice
+templates/roles/<role_key>/       one module.json per role (A3 pilot: photographer)
+resolver/                         checks, resolver, terms hash, render-all and role-commit gates (A3)
+.github/workflows/brain-ci.yml    CI: Brain, adapter and template tests, schema gate, render every role x base, role-commit folders
 .mcp.json · .claude/settings.json the factory's MCP server (genskill-mcp@2.3.3) and what it and the Brain may not do
 ```
 

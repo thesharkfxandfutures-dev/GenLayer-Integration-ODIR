@@ -1,0 +1,367 @@
+{
+  "schema": "odir.role-template.v1",
+  "role_key": "photographer",
+  "role_label": "Photographer",
+  "family": "MAKER",
+  "version": 1,
+  "summary": "A photographer booked for a shoot (provider, under P2P and B2P), or booking someone such as a makeup artist for their own shoot (engager, under P2P). Draft wording for review; not legal advice.",
+  "drafted_against": {
+    "P2P": 1,
+    "B2P": 1
+  },
+  "defaults": {
+    "pay_type": "day"
+  },
+  "risk_flags": [
+    "image_rights",
+    "personal_data",
+    "equipment_value",
+    "on_location"
+  ],
+  "engager": {
+    "bases": [
+      "P2P"
+    ],
+    "party_label": "the Photographer",
+    "clauses": [
+      {
+        "id": "photographer.engager.parties.1",
+        "category": "parties_authority",
+        "text": "[[Engager]] books as a working photographer, for a shoot that is part of their business."
+      },
+      {
+        "id": "photographer.engager.duties.brief",
+        "category": "role_duties",
+        "text": "[[Engager]] sends [[provider]] a brief for the shoot, with reference images where useful, at least {{brief_days}} days before it.",
+        "checkable": true
+      },
+      {
+        "id": "photographer.engager.duties.direct",
+        "category": "role_duties",
+        "text": "[[Engager]] directs the shoot and has the final say on the look of the images."
+      },
+      {
+        "id": "photographer.engager.place.1",
+        "category": "place",
+        "text": "[[Engager]] confirms the venue, parking and access details to [[provider]] at least 48 hours before the shoot."
+      },
+      {
+        "id": "photographer.engager.time.1",
+        "category": "time_hours",
+        "text": "[[Engager]] gives [[provider]] a call sheet with the times for each part of the shoot."
+      },
+      {
+        "id": "photographer.engager.pay.1",
+        "category": "pay",
+        "text": "[[Engager]] pays [[provider]] whether or not the images are later used or published."
+      },
+      {
+        "id": "photographer.engager.expenses.1",
+        "category": "expenses_equipment",
+        "text": "[[Engager]] supplies the lighting, backdrops and space the shoot needs; [[provider]] brings the tools of their own trade."
+      },
+      {
+        "id": "photographer.engager.usage.portfolio",
+        "category": "usage_licence",
+        "text": "[[Provider]] may use up to {{portfolio_count}} of the final images in their own portfolio once [[engager]] has published them, credited as “{{portfolio_credit}}”."
+      },
+      {
+        "id": "photographer.engager.copyright.1",
+        "category": "copyright_moral_rights",
+        "text": "Copyright in the images belongs to [[engager]] as the photographer. [[Provider]] keeps any rights they have in their own designs."
+      },
+      {
+        "id": "photographer.engager.safety.1",
+        "category": "safety_licences",
+        "text": "[[Engager]] makes sure the set is safe, including lighting stands, cables and props, and tells [[provider]] about any hazard on arrival."
+      },
+      {
+        "id": "photographer.engager.cancel.reschedule",
+        "category": "cancellation_no_show",
+        "text": "If [[engager]] moves the shoot with at least {{notice_hours}} hours’ notice, the booking moves to the new date without a cancellation charge if [[provider]] is free then."
+      },
+      {
+        "id": "photographer.engager.conf.1",
+        "category": "confidentiality_consent",
+        "text": "[[Engager]] tells [[provider]] in advance if the shoot is confidential, for example an unreleased product, and what may not be shared."
+      },
+      {
+        "id": "photographer.engager.proof.1",
+        "category": "proof_of_completion",
+        "text": "[[Engager]] confirms through SnapLink, on the day, that [[provider]] attended and did the agreed work, or says what was not done.",
+        "checkable": true
+      },
+      {
+        "id": "photographer.engager.disputes.1",
+        "category": "disputes_record",
+        "text": "[[Engager]] tells [[provider]] about any problem with their work during the shoot where possible, so it can be put right on the day."
+      }
+    ],
+    "fields": [
+      {
+        "key": "brief_days",
+        "label": "Days before the shoot the brief is sent",
+        "category": "role_duties",
+        "type": "number",
+        "default": "2"
+      },
+      {
+        "key": "portfolio_count",
+        "label": "Images the provider may use in their portfolio",
+        "category": "usage_licence",
+        "type": "number",
+        "default": "10"
+      },
+      {
+        "key": "portfolio_credit",
+        "label": "Portfolio credit line",
+        "category": "usage_licence",
+        "type": "text"
+      }
+    ]
+  },
+  "provider": {
+    "bases": [
+      "P2P",
+      "B2P"
+    ],
+    "party_label": "the Photographer",
+    "clauses": [
+      {
+        "id": "photographer.provider.parties.1",
+        "category": "parties_authority",
+        "text": "[[Provider]] confirms that the portfolio on their SnapLink profile is their own work."
+      },
+      {
+        "id": "photographer.provider.duties.deliver",
+        "category": "role_duties",
+        "text": "[[Provider]] delivers {{image_count}} edited images within {{delivery_days}} days of the shoot, by {{delivery_method}}.",
+        "checkable": true
+      },
+      {
+        "id": "photographer.provider.duties.quality",
+        "category": "role_duties",
+        "text": "[[Provider]] delivers the images without watermarks, at a resolution suitable for the licensed use.",
+        "checkable": true
+      },
+      {
+        "id": "photographer.provider.duties.shotlist",
+        "category": "role_duties",
+        "text": "[[Provider]] photographs every item on the shot list agreed before the shoot, or records on the day why an item could not be shot.",
+        "checkable": true
+      },
+      {
+        "id": "photographer.provider.duties.edit",
+        "category": "role_duties",
+        "text": "Editing means {{retouch_level}}. Further retouching is agreed and paid for separately."
+      },
+      {
+        "id": "photographer.provider.duties.backup",
+        "category": "role_duties",
+        "text": "[[Provider]] keeps a backup copy of the images until delivery and for at least {{archive_days}} days after it.",
+        "checkable": true
+      },
+      {
+        "id": "photographer.provider.place.setup",
+        "category": "place",
+        "text": "[[Provider]] may need up to 30 minutes at the venue before the start to set up, and [[engager]] arranges access for this."
+      },
+      {
+        "id": "photographer.provider.time.arrive",
+        "category": "time_hours",
+        "text": "[[Provider]] arrives at the venue ready to start by {{start_time}}.",
+        "checkable": true
+      },
+      {
+        "id": "photographer.provider.time.breaks",
+        "category": "time_hours",
+        "text": "In a shoot longer than six hours, [[provider]] takes a break of at least 20 minutes."
+      },
+      {
+        "id": "photographer.provider.pay.covers",
+        "category": "pay",
+        "text": "The fee covers the shoot, the editing and delivery of the agreed number of images, and the licence in this agreement."
+      },
+      {
+        "id": "photographer.provider.expenses.kit",
+        "category": "expenses_equipment",
+        "text": "[[Provider]] brings working camera equipment to the shoot, with spare batteries and memory cards.",
+        "checkable": true
+      },
+      {
+        "id": "photographer.provider.expenses.extras",
+        "category": "expenses_equipment",
+        "text": "Prints, albums, extra edited images and props are not included unless this agreement lists them."
+      },
+      {
+        "id": "photographer.provider.usage.business",
+        "category": "usage_licence",
+        "text": "[[Engager]] may use the delivered images in {{usage_media}}, in {{usage_territory}}, for {{usage_term}} from delivery. Each published use carries the credit “{{credit_line}}” where the medium allows.",
+        "when": {
+          "consumer": false
+        }
+      },
+      {
+        "id": "photographer.provider.usage.consumer",
+        "category": "usage_licence",
+        "text": "[[Engager]] may use the delivered images for their own private and domestic purposes, including sharing them with family and friends and on personal social media. Commercial use needs a separate licence.",
+        "when": {
+          "consumer": true
+        }
+      },
+      {
+        "id": "photographer.provider.usage.terms",
+        "category": "usage_licence",
+        "text": "The licence is non-exclusive and cannot be passed on to anyone else without [[provider]]’s written consent."
+      },
+      {
+        "id": "photographer.provider.copyright.keep",
+        "category": "copyright_moral_rights",
+        "text": "[[Provider]] keeps copyright in every image, including images not delivered. Raw files are not handed over."
+      },
+      {
+        "id": "photographer.provider.copyright.assert",
+        "category": "copyright_moral_rights",
+        "text": "[[Provider]] asserts the right to be identified as the author of the images."
+      },
+      {
+        "id": "photographer.provider.safety.insurance",
+        "category": "safety_licences",
+        "text": "[[Provider]] holds public liability insurance and shows the certificate on request.",
+        "checkable": true
+      },
+      {
+        "id": "photographer.provider.safety.drone",
+        "category": "safety_licences",
+        "text": "If drone photography is agreed, [[provider]] holds the operator and flyer registrations the Civil Aviation Authority requires and flies within its rules."
+      },
+      {
+        "id": "photographer.provider.cancel.replacement",
+        "category": "cancellation_no_show",
+        "text": "If [[provider]] cannot attend because of illness or an emergency, they tell [[engager]] at once and try to offer a suitably experienced replacement photographer. [[Engager]] may accept the replacement or cancel for a full refund."
+      },
+      {
+        "id": "photographer.provider.conf.private",
+        "category": "confidentiality_consent",
+        "text": "Because [[engager]] commissioned these photographs for private and domestic purposes, [[provider]] will not show them in public, publish them or use them in a portfolio without [[engager]]’s written consent.",
+        "when": {
+          "consumer": true
+        },
+        "locked": true
+      },
+      {
+        "id": "photographer.provider.conf.portfolio",
+        "category": "confidentiality_consent",
+        "text": "[[Provider]] may use up to {{portfolio_count}} of the delivered images in their own portfolio and promotion, unless [[engager]] asks otherwise before signing.",
+        "when": {
+          "consumer": false
+        }
+      },
+      {
+        "id": "photographer.provider.conf.consent",
+        "category": "confidentiality_consent",
+        "text": "[[Provider]] respects any request from a person at the shoot not to be photographed, and [[engager]] tells [[provider]] in advance about anyone who has asked."
+      },
+      {
+        "id": "photographer.provider.conf.supplied",
+        "category": "confidentiality_consent",
+        "text": "Where [[engager]] supplies models, products or locations, [[engager]] is responsible for having the consents and permissions needed to photograph them.",
+        "when": {
+          "bases": [
+            "B2P"
+          ]
+        }
+      },
+      {
+        "id": "photographer.provider.proof.delivery",
+        "category": "proof_of_completion",
+        "text": "Delivery of the gallery with the agreed number of edited images shows that the main duty was done; SnapLink records the delivery date."
+      },
+      {
+        "id": "photographer.provider.disputes.reedit",
+        "category": "disputes_record",
+        "text": "[[Engager]] raises any complaint about the images within 14 days of delivery where they can, naming the images concerned, so that [[provider]] can re-edit them first."
+      }
+    ],
+    "fields": [
+      {
+        "key": "engagement_summary",
+        "label": "What is being photographed",
+        "category": "role_duties",
+        "type": "text",
+        "refines": true
+      },
+      {
+        "key": "image_count",
+        "label": "Number of edited images",
+        "category": "role_duties",
+        "type": "number",
+        "default": "40"
+      },
+      {
+        "key": "delivery_days",
+        "label": "Days to deliver after the shoot",
+        "category": "role_duties",
+        "type": "number",
+        "default": "10"
+      },
+      {
+        "key": "delivery_method",
+        "label": "How the images are delivered",
+        "category": "role_duties",
+        "type": "text",
+        "default": "a private online gallery link"
+      },
+      {
+        "key": "retouch_level",
+        "label": "Editing included",
+        "category": "role_duties",
+        "type": "text",
+        "default": "colour correction and light retouching"
+      },
+      {
+        "key": "archive_days",
+        "label": "Days a backup is kept after delivery",
+        "category": "role_duties",
+        "type": "number",
+        "default": "90"
+      },
+      {
+        "key": "usage_media",
+        "label": "Licensed media",
+        "category": "usage_licence",
+        "type": "text"
+      },
+      {
+        "key": "usage_territory",
+        "label": "Licensed territory",
+        "category": "usage_licence",
+        "type": "text",
+        "default": "the United Kingdom"
+      },
+      {
+        "key": "usage_term",
+        "label": "Licence period",
+        "category": "usage_licence",
+        "type": "duration",
+        "default": "12 months"
+      },
+      {
+        "key": "credit_line",
+        "label": "Credit line",
+        "category": "usage_licence",
+        "type": "text"
+      },
+      {
+        "key": "portfolio_count",
+        "label": "Images the provider may use in their portfolio",
+        "category": "usage_licence",
+        "type": "number",
+        "default": "10"
+      }
+    ]
+  },
+  "style": {
+    "seal_colour": "red"
+  }
+}
