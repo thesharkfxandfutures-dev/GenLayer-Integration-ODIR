@@ -60,7 +60,7 @@ Two parties claim one photograph; decide whose claim the public evidence support
 - **Must refuse:** a third claimant; a statement edited after both are in; a decision request
   before both statements exist.
 
-## 10. service_medal_award — `drafted`
+## 10. service_medal_award — `drafted (PR #12)`
 
 Award contract (owner's page row 10): Service medals for 1, 5, 10, 15, 20 and 25 years. Do the dated
 activity records show the stated years of active service in the role?
