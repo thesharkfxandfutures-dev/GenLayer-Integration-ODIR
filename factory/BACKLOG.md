@@ -60,7 +60,7 @@ Two parties claim one photograph; decide whose claim the public evidence support
 - **Must refuse:** a third claimant; a statement edited after both are in; a decision request
   before both statements exist.
 
-## 8. recognition_plaque_award — `drafted (PR pending)`
+## 8. recognition_plaque_award — `drafted (PR #10)`
 
 Award contract: percentage plaques, Top 1%, 3%, 5%, 10%. Does the band hold by actual rank ÷
 eligible entrants (decided by rank, never by a rounded percentage), with each person counted once?

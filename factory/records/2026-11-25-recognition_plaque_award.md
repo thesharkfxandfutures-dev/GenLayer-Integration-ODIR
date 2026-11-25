@@ -178,3 +178,21 @@ VERDICT: DRAFTED — lint clean, 14 direct-mode tests pass (no mocks needed), 6 
 caught, Studionet reachable and the deploy simulation constructs (`00`); schema NOT_RUN. The PR stays
 a draft until the owner deploys and the post-deploy Studionet check (transaction report and a view
 read) passes.
+
+## Independent verification — 25 Nov 2026 (same scheduled run, separate verifier agent)
+
+A verifier agent that did not build this contract checked out `62e569b370d7d3a6a3dc5af1fb80ea3f1e439856` and judged it
+from the code, the tests and page row 8 (plus the award rules) before reading this record. **Verdict: PASS.**
+
+| Check | Attempt | Result | Grade | Evidence |
+|---|---|---|---|---|
+| Hashes | 1 | contract `b6987dc6…74d90`, tests `f4e9ef81…0558` match this record | OBSERVED | unchanged after mutations |
+| genskill lint (full source) | 1 | 0 errors, 0 warnings, 0 info | OBSERVED | source pasted by hand; byte identity not machine-checked |
+| pytest | 1 | `14 passed in 0.33s` | OBSERVED | verifier's own clone |
+| Exact integer band decision | 1 | 0 mismatches | OBSERVED | sweep n = 100…2100, ranks at and one past each band limit, all four bands, against `Fraction` arithmetic |
+| Row + award-rule coverage, exact texts | 1 | every item has a full-text test | OBSERVED | BAD_BAND, COHORT_TOO_SMALL (99 refused, 100 accepted), ALREADY_DECIDED, FORBIDDEN_SIGNAL (five families, every text input), BAD_ROLE_KEY; 18 ERR constants match the contract exactly |
+| Mutations caught | 1 | 17 of 17 | OBSERVED | `<=`→`<`, rounded-percentage decision, verdicts flipped, each refusal removed, each forbidden family removed, duplicate key changed, percentage truncated; reverted, tree clean |
+
+Verifier notes (not defects): doc block after `from genlayer import *`; forbidden list misses "follows", "subscribed",
+"downvotes", "paying members", "Gold membership", "PaidPlan", "sponsored", "promoted"; `ranking_basis` is free text
+(documented as public). Not reproduced by the verifier: the Studionet checks (outside its brief).
