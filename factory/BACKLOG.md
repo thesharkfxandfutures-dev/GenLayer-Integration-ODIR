@@ -59,3 +59,23 @@ Two parties claim one photograph; decide whose claim the public evidence support
   answer), with the deciding fact quoted.
 - **Must refuse:** a third claimant; a statement edited after both are in; a decision request
   before both statements exist.
+
+## 9. verified_work_milestone — `drafted (PR pending)`
+
+Award contract (owner's page row 9): Verified Work trophies, Foundation (25) to Zenith (10,000).
+Decide whether every counted piece of work is attested or SnapLink-verified, done in the named role
+and counted once, so that the milestone is reached. Deterministic counting (no LLM).
+
+- **Inputs:** role key, milestone, list of work-record hashes with evidence level and role (three
+  parallel lists), plus `entrant_id` (a public 64-hex hash, never a name). Public data only.
+- **Decision:** `MILESTONE_REACHED` or `NOT_REACHED` with the shortfall (count − counted). A record counts
+  only if its level is `ATTESTED` or `SNAPLINK_VERIFIED` and its role equals the role key.
+- **Must refuse:** a milestone not in the catalogue (`UNKNOWN_MILESTONE`); the same work hash twice in one
+  claim (`DUPLICATE_WORK_HASH`); a milestone already confirmed for this entrant and role
+  (`ALREADY_CONFIRMED`).
+- **Award rules (rows 7–12):** serves all 45 roles with the role key as an input (shape checked only:
+  `BAD_ROLE_KEY`); refuses any input carrying a forbidden selection signal — likes, followers, votes,
+  paid plan or boost (`FORBIDDEN_SIGNAL`) — because paid membership must never improve anyone's chance
+  of an award.
+- Record: `factory/records/2026-11-25-verified_work_milestone.md` (open questions: missing levels
+  between Foundation and Zenith, owner-only claims, ~1 MB calldata for a full Zenith claim).
