@@ -41,7 +41,7 @@ Confirm that a creator is the person credited on a piece of media.
 - **Must refuse:** a confirmation from an address other than the creator's; a claim on a media
   hash already verified for someone else.
 
-## 4. conduct_reason_review — `drafted (PR pending)`
+## 4. conduct_reason_review — `drafted (PR #7)`
 
 Judge whether a late cancellation or no-show reason justifies a trust penalty.
 

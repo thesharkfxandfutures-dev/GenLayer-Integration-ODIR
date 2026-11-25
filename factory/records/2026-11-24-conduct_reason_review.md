@@ -156,3 +156,26 @@ through the MCP server (network status, schema request, deploy simulation via `g
 Pre-deploy Studionet check: **passed** for reachability and deploy simulation; schema NOT_RUN
 (endpoint limitation). The after-deploy part (transaction report and a view read once the owner
 deploys and posts the hash) is still outstanding, so the pull request stays a draft until then.
+
+## Independent verification — 25 Nov 2026 (scheduled factory run)
+
+A separate verifier agent (not the builder) checked out this branch at `8021437aed24847b11ab1928a7f7721fefd407b3`
+and judged it from the code, the tests and page row 5, without this record. **Verdict: PASS.**
+
+| Check | Attempt | Result | Grade | Evidence |
+|---|---|---|---|---|
+| Contract sha256 | 1 | `9336ac702d921f8545d557056b89a72f2b8b5202bc9b302934de11f43e72727a` | OBSERVED | unchanged after all mutations were reverted; test file `713a4781…c4ad2` |
+| genskill lint (full source) | 1 | `ok: true`, 0 errors, 0 warnings, 0 info | OBSERVED | source pasted into the tool call; byte identity not machine-checked |
+| pytest (genlayer-test 0.29.2 direct mode, LLM mocked) | 1 | `14 passed in 0.27s` | OBSERVED | re-run in the verifier's own clone |
+| Every answer word, band and refusal has a test; refusals exact | 1 | yes | OBSERVED | both verdicts, MINOR/STANDARD/SEVERE/NONE; `CASE_CLOSED` (2 tests) and `SEVERITY_OUT_OF_BANDS` (7 answers) assert the full text |
+| Validators agree on verdict and band, not wording | 1 | yes | OBSERVED (direct mode) | `validator_fn` compares only verdict and band; leader clause must be in the terms |
+| Mutations caught | 1 | 8 of 8 | OBSERVED | after-close refusal removed → 2 failed; any band accepted → 1; validator always agrees → 1; verdict word flipped → 3; validator ignores band → 1; clause check dropped → 1; decide on closed case → 1; refusal text changed → 1; each reverted, tree clean |
+| Studionet schema (endpoint re-probe) | 1 | `unsupported_contract_rpc` (`studionet-hosted`) | NOT_RUN | orchestrator probe, 25 Nov ~00:01 UTC; endpoint limitation, not this contract |
+| Studionet reachability | 1 | healthy, chain `0xf22f`, block `0x6b062555` | OBSERVED | orchestrator `genlayer_network_status`, 25 Nov ~00:01 UTC |
+
+Advisory notes from the verifier (not defects): a leader that errors (for example `SEVERITY_OUT_OF_BANDS` from a bad
+model answer) is rejected by validators, so on a network such a transaction re-rotates or ends undetermined rather than
+finalizing a refusal; the row does not restrict who may submit a reason or ask for a decision; the docstring could also
+say that the stated reason and evidence summary must not hold names, emails or private details. `genlayer_search_docs`
+failed for the verifier (`ENOENT mkdir /var/task/.cache`, tooling; optional). Not reproduced by the verifier: the
+Studionet deploy simulation above (not in its brief).
