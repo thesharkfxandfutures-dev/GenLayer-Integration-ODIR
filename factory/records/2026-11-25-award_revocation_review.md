@@ -180,3 +180,53 @@ VERDICT: DRAFTED — lint clean (first attempt), 20 direct-mode tests pass with 
 planted mutations caught, Studionet reachable and the deploy simulation constructs (`00`); schema NOT_RUN
 (endpoint). The PR stays a draft until the owner deploys and the post-deploy Studionet check (transaction
 report and a view read) passes.
+
+## Independent verification (verifier agent, 2026-11-25T05:55Z)
+
+Verified from the contract, the tests and owner row 12 only; this record was read after the verdict.
+
+- HEAD checked: `a44a73531e865c044ac215e3bee2b3f22d18e807` on `factory/award_revocation_review-2026-11-25` (fresh clone).
+- `contracts/factory/award_revocation_review.py` sha256 `8db424e99e5ffc2840c887cd4b4d30d13cd3ff335d1be0500ed880132cdc22d4` (as built; unchanged after every mutation).
+- `tests/factory/test_award_revocation_review.py` sha256 `a69536fabb92215a115a9ca52ba7c77c52f7b3c6ba7ad436e32d7e28675e2d2e`.
+
+| Check | Attempt | Result | Grade | Evidence |
+|---|---|---|---|---|
+| Lint | `genlayer_lint_contract` on the full 27,434-byte source | 0 errors, 0 warnings, 0 info, `ok: true` | OBSERVED | tool output |
+| Tests | `python3 -m pytest tests/factory/test_award_revocation_review.py -q` (genlayer-test 0.29.2) | `20 passed in 0.67s` | OBSERVED | pytest output |
+| Source shape | read lines 1-3 and the module text | line 1 is the pinned runner header, line 2 blank, line 3 `from genlayer import *`; no comment under the header; constructor `AwardRevocationReview()` documented in the leading triple-quoted block. Note: that block follows the import, so Python's `__doc__` is None (a docstring placed directly under the header also lints clean). Non-blocking | OBSERVED | `ast.get_docstring` is None; lint of a header-then-docstring probe: 0 findings |
+| Answer words | read `test_revoke_when_fraud_is_found`, `test_keep_when_the_reason_is_a_complaint_about_taste` | REVOKE (status becomes REVOKED, `revoked_by` set) and KEEP (status stays ISSUED) each asserted on the full result and stored record | OBSERVED | tests pass |
+| Must refuse: award never issued | `test_refuses_a_revocation_of_an_award_never_issued` | full text `AWARD_NOT_ISSUED` asserted for no awards, other award issued, unknown ref and upper-case ref; no LLM mock (refusal precedes the model); `get_award` refuses; status `NOT_ISSUED`; nothing written | OBSERVED | tests pass; mutation M1 caught |
+| Must refuse: second decision on the same reason | `test_refuses_a_second_decision_on_the_same_reason` | full text `REASON_ALREADY_DECIDED` asserted for the identical reason and for the same reason in other case and spacing with other summary and evidence; also still refused after a REVOKE; a different reason or a different award is a new decision | OBSERVED | tests pass; mutations M3, M10 caught |
+| Award-table rule: forbidden selection signals | `test_refuses_a_reason_or_summary_that_carries_a_forbidden_signal`, `test_refuses_rules_text_that_carries_a_forbidden_signal` | full `FORBIDDEN_SIGNAL` text asserted for 13 reason texts and the same 13 as evidence summaries (likes, liked, followers, votes, voting, upvotes, paid plan, subscription, premium, membership, pro plan, boosted, boost) and for 8 rules texts; whole-word rule shown ("likeness" accepted). The role key is shape-checked only (not scanned for the terms), as the contract documents | OBSERVED | tests pass; mutations M4, M7, M8 caught |
+| Universal contract, role key an input | `test_one_contract_serves_every_award_type_and_role` | five award types and five role keys served by one contract; the role key is an input of `record_issued_award` and the review reads it from the stored award (the row's `review_revocation` inputs match: reference hash, reason, evidence summary + hash, rules version) | OBSERVED | tests pass |
+| Validator compares the verdict word | read `validator_fn`; `test_validator_agrees_on_the_verdict_word_not_the_wording`, `test_validator_agrees_on_keep` | `mine["verdict"] == theirs["verdict"]`; same word with other quote and wording agrees, different word disagrees, forged or malformed leader result and leader error disagree | OBSERVED | tests pass; mutations M2, M6 caught |
+| Other refusals | rules version unknown or mismatched, malformed hashes, bad role key and award type, award recorded twice, empty or long reason and summary, owner only, rules registry, malformed model answers, revoked award | each has a test with the contract's text; `ERR_DECISION_SHAPE` (not reachable from the direct-mode tests) is the only error text with no test | OBSERVED | tests pass; M9, M11 caught |
+| Safety: calldata | read every method signature and the docstring | arguments are sha256 hex, role key, award type word, rules version name, rules text, reason, evidence summary: public data; the private evidence stays off chain (only its hash is stored); the prompt carries no hash (asserted by `test_prompt_carries_the_public_inputs_and_no_hashes`) | OBSERVED | source read; test passes |
+| Safety: no key, no sending | grep for `private`, `key`, `sign`, `raw_rpc`, `submit`, `eth_send`, `requests`, `urllib`, `get_webpage`, `web.` | no private key, no signing or sending call and no web call; the `key` hits are `role_key`, `decision_key`, `_check_role_key`, the forbidden-signal error text and prompt wording. The only address handled is the sender's public address (`owner`, `reviewed_by`) | OBSERVED | grep output |
+| Safety: mocks | read the tests | the model is mocked with `direct_vm.mock_llm` everywhere; the contract reads no web page and the tests make no web call | OBSERVED | source read |
+| Deploy simulation | `glcall.mjs deploy` builds the data (54,886 hex characters); `genlayer_call_contract` type deploy was not sent | the payload is the whole contract source in hex; it cannot be relayed faithfully by hand through a tool parameter, so the call was not made (tooling limit, not a contract defect). The builder's section above reports `00` | NOT_RUN | no network observation of my own |
+
+### Mutations planted in the contract (one at a time; each reverted with `git checkout -- <file>`)
+
+| # | Mutation | Result | Caught by |
+|---|---|---|---|
+| M1 | AWARD_NOT_ISSUED refusal replaced by a made-up issued award | 1 failed, 19 passed | `test_refuses_a_revocation_of_an_award_never_issued` |
+| M2 | validator always returns True | 2 failed | `test_validator_agrees_on_the_verdict_word_not_the_wording`, `test_validator_agrees_on_keep` |
+| M3 | REASON_ALREADY_DECIDED refusal disabled | 1 failed | `test_refuses_a_second_decision_on_the_same_reason` |
+| M4 | forbidden-signal check removed from `review_revocation` | 1 failed | `test_refuses_a_reason_or_summary_that_carries_a_forbidden_signal` |
+| M5 | verdict word flipped when setting the award status (REVOKE becomes KEEP) | 4 failed | `test_revoke_when_fraud_is_found`, `test_keep_when_the_reason_is_a_complaint_about_taste`, `test_refuses_a_second_decision_on_the_same_reason`, `test_refuses_a_new_reason_on_a_revoked_award` |
+| M6 | `_quote_ok` always True (quote need not be in the rules text) | 2 failed | `test_refuses_malformed_model_answers`, `test_validator_agrees_on_the_verdict_word_not_the_wording` |
+| M7 | "premium" removed from FORBIDDEN_TERMS | 2 failed | the reason/summary test and the rules-text test |
+| M8 | forbidden-signal check removed from `register_rules` | 1 failed | `test_refuses_rules_text_that_carries_a_forbidden_signal` |
+| M9 | owner-only check removed from `review_revocation` | 1 failed | `test_only_the_owner_writes` |
+| M10 | reason hash made case-sensitive | 2 failed | `test_revoke_when_fraud_is_found`, `test_refuses_a_second_decision_on_the_same_reason` |
+| M11 | rules-version mismatch refusal disabled | 1 failed | `test_refuses_an_unknown_or_mismatched_rules_version` |
+| M12 | text appended to the end of ERR_AWARD_NOT_ISSUED | 20 passed (not caught) | see note |
+| M13 | one word changed inside ERR_REASON_ALREADY_DECIDED | 1 failed | `test_refuses_a_second_decision_on_the_same_reason` |
+| M14 | word added at the start of ERR_FORBIDDEN_SIGNAL's text | 2 failed | the two forbidden-signal tests |
+
+M1 to M11 and M13 to M14 are caught (13 of 14). M12 shows `direct_vm.expect_revert` is a substring match (genlayer-test 0.29.2 harness behaviour): the tests spell out each full refusal text, but text appended after it would not be flagged. This is a harness property, not a test omission. After the last mutation the contract sha256 is again `8db424e9...22d4` and `git status` shows no changes to tracked files.
+
+Non-blocking notes: (1) the constructor documentation is a module-level string after the import, not Python's `__doc__`; (2) `ERR_DECISION_SHAPE` has no test; (3) a few model-error and index assertions use a fragment of the text (the first case for each also asserts the full text); (4) the forbidden-term list does not include forms such as "follows" or "liking", which is a list choice the contract documents.
+
+**Verdict: PASS**
