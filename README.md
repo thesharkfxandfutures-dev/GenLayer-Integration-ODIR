@@ -33,7 +33,7 @@ factory/                          contract factory: an MCP server writes contrac
 ```bash
 cd adapter
 npm install                      # optional: only --rpc needs genlayer-js@1.1.8 (pinned); file mode needs nothing
-npm test                         # 31 local Node tests
+npm test                         # 37 local Node tests
 npm run fixtures                 # synthetic REVIEWED_PASS and live-recorded CONSUMED cases → both CONSISTENT, authority none
 
 node bin/genlayer-odir.mjs package verify ../fixtures/d1/package.live.json
@@ -49,7 +49,7 @@ used only by `--rpc`, loaded on demand.
 | Claim | Level |
 |---|---|
 | Contract lifecycle works on Studionet | owner-demonstrated once (D1); read back live by this adapter on 2026-10-31 (`docs/DEPLOYMENTS.md`) |
-| Adapter logic refuses what it should | 31 local unit tests, deterministic paths only |
+| Adapter logic refuses what it should | 37 local unit tests, deterministic paths only |
 | Node, CPython and the deployed contract hash the same bytes | CPython vectors checked in Node; the deployed `task_sha256` and `criteria_sha256` reproduced from the live reply |
 | Network reads | one configured endpoint through the pinned client, state `latest-final`; no corroboration, no state proof |
 | Deployed code identity | claimed (source hash only), not confirmed |
