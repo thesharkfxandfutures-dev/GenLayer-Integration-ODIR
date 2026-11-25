@@ -182,3 +182,22 @@ VERDICT: DRAFTED — lint clean, 22 direct-mode tests pass with the model mocked
 caught, Studionet reachable and the deploy simulation constructs (`00`); schema NOT_RUN (endpoint). The PR
 stays a draft until the owner deploys and the post-deploy Studionet check (transaction report and a view
 read) passes.
+
+## Independent verification — 25 Nov 2026 (same scheduled run, separate verifier agent)
+
+A verifier agent that did not build this contract checked out `052a5e0ca2ef987026b8313bfd1f8a61e8d17205` and judged it
+from the code, the tests and page row 7 (plus the award rules) before reading this record. **Verdict: PASS.**
+
+| Check | Attempt | Result | Grade | Evidence |
+|---|---|---|---|---|
+| Hashes | 1 | contract `d3b656c0…6063b`, tests `60846242…be1c3` match this record | OBSERVED | unchanged after mutations |
+| genskill lint (full source) | 1 | 0 errors, 0 warnings, 0 info | OBSERVED | source pasted by hand; byte identity not machine-checked |
+| pytest | 1 | `22 passed in 0.51s` | OBSERVED | verifier's own clone |
+| Row + award-rule coverage, exact texts | 1 | every item has a full-text test | OBSERVED | UNKNOWN_RULES_VERSION, SEASON_NOT_FINISHED, SEAT_ALREADY_DECIDED, FORBIDDEN_SIGNAL (all five families, summary and rules text), BAD_ROLE_KEY, SEAT_OUT_OF_RANGE (edges 10/10/11/1) |
+| Mutations caught | 1 | 19 of 19 | OBSERVED | each refusal removed, validator always true / whole-result compare / accepts leader error, verdict flipped, seat limits changed, quote checks dropped, seat key without area; reverted, tree clean |
+
+Verifier notes (design choices, not defects): owner-managed rules registry, owner marks seasons finished, owner-only
+writes, NOT_CONFIRMED also locks the seat; the forbidden-signal filter refuses mere mentions ("votes never count") and
+misses some variants ("liked", "upvotes", "Gold membership", "Pro plan", "subscribed"); "highest wins" and the county
+minimum are judged by the model from the summary, not computed on chain. `ERR_DECISION_SHAPE` is reached only inside the
+validator (tested there). Not reproduced by the verifier: the Studionet checks (outside its brief).

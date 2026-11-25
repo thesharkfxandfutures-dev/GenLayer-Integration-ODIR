@@ -60,7 +60,7 @@ Two parties claim one photograph; decide whose claim the public evidence support
 - **Must refuse:** a third claimant; a statement edited after both are in; a decision request
   before both statements exist.
 
-## 7. champion_seat_award — `drafted (PR pending)`
+## 7. champion_seat_award — `drafted (PR #9)`
 
 Award contract (owner's page row 7; replaces the earlier `league_placement_review` proposal and covers
 the same World #1 case and every other seat). Champion trophies and places: World (SnapLink Trophy for
