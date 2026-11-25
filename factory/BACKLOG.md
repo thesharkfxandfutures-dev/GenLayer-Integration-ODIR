@@ -59,3 +59,23 @@ Two parties claim one photograph; decide whose claim the public evidence support
   answer), with the deciding fact quoted.
 - **Must refuse:** a third claimant; a statement edited after both are in; a decision request
   before both statements exist.
+
+## 11. annual_award_decision — `drafted`
+
+Award contract (owner's page, award table row 11). The annual awards: Photographer, Designer and Filmmaker of the
+Year; Emerging Talent; Creative Business and Studio of the Year (award codes `PHOTOGRAPHER_OF_THE_YEAR`,
+`DESIGNER_OF_THE_YEAR`, `FILMMAKER_OF_THE_YEAR`, `EMERGING_TALENT`, `CREATIVE_BUSINESS_OF_THE_YEAR`,
+`STUDIO_OF_THE_YEAR`).
+
+Which finalist best meets the published criteria, or does nobody meet them?
+
+- **Inputs:** role key, award code, season, the published criteria text, and each finalist's public id, public
+  evidence summary and evidence hash (public data only).
+- **Decision:** `WINNER` + finalist id, or `NO_AWARD`, with the criterion relied on quoted from the criteria text.
+  Comparative equivalence: validators agree on `WINNER` with the same finalist id, or on `NO_AWARD`.
+- **Must refuse:** fewer than two finalists; a decision before the season reaches finalists; a second decision for
+  the same award and season.
+- **Award-contract rules (rows 7–12):** one universal contract for all roles (role key is an input, shape checked
+  only); refuse inputs that rely on a forbidden selection signal (likes, followers, votes, paid plan / subscription /
+  premium / membership tier, boost) with `FORBIDDEN_SIGNAL`, because paid membership must never improve anyone's
+  chance of an award.
