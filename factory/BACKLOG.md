@@ -59,3 +59,25 @@ Two parties claim one photograph; decide whose claim the public evidence support
   answer), with the deciding fact quoted.
 - **Must refuse:** a third claimant; a statement edited after both are in; a decision request
   before both statements exist.
+
+## 7. champion_seat_award — `drafted (PR pending)`
+
+Award contract (owner's page row 7; replaces the earlier `league_placement_review` proposal and covers
+the same World #1 case and every other seat). Champion trophies and places: World (SnapLink Trophy for
+seat 1, World Plaque for seats 2–10), Continental Plaque (seats 1–10), National Cup (seats 1–11), County
+Shield (seat 1).
+
+Does this entrant's seat hold under the published allocation rules: only work in the named role counted,
+one seat per winner (highest wins), published tie-breaks, county minimum of 3 credited jobs?
+
+- **Inputs:** role key, scope + area code, season year, seat number, standings snapshot hash, allocation
+  rules version + text, the entrant's evidence summary + hash (public data only).
+- **Decision:** `CONFIRMED` or `NOT_CONFIRMED`, with the rule relied on quoted from the allocation rules
+  text. Comparative equivalence on the verdict word.
+- **Must refuse:** an unknown rules version; a season not finished; a second verdict for the same role,
+  area, season and seat.
+- **Award-contract rules (rows 7–12):** one universal contract for all roles (role key is an input, shape
+  checked only); refuse inputs that rely on a forbidden selection signal (likes, followers, votes, paid
+  plan / subscription / premium / membership tier, boost) with `FORBIDDEN_SIGNAL`, because paid
+  membership must never improve anyone's chance of an award; scope and seat checked against the places
+  above.
