@@ -113,6 +113,7 @@ MCP server: `genskill` claude.ai connector; tools `mcp__genskill__genlayer_*`. T
 | Studionet reachability | 1 | pass | `genlayer_network_status` above | — |
 | Studionet schema | 1 | NOT_RUN | `unsupported_contract_rpc` (endpoint mode) | not retried: the endpoint refuses the operation |
 | Studionet deploy simulation | 1 | pass | `"00"` → `null` | — |
+| Verifier | 1 | PASS | own clone at `e5bcf08`: lint 0 errors; 22 passed; both answers and all 4 must-refuse cases have exact-text tests; safety clean; 6 of 6 planted mutations caught | — |
 
 No check failed because of the contract; no retry was needed for lint, tests or the network check.
 
@@ -193,3 +194,33 @@ Read-only checks afterwards (wait for FINALIZED before reading):
 VERDICT: DRAFTED — lint clean, 22 direct-mode tests pass with the model mocked, 47 of 47 planted mutations
 caught, Studionet reachable and the deploy simulation constructs (`00`); schema NOT_RUN (endpoint). The PR stays
 a draft until the owner deploys and the post-deploy Studionet check (transaction report and a view read) passes.
+
+## Independent verification (verifier agent, 2026-11-25T10:26Z)
+
+Independent verifier, not the builder. Own clone `/home/claude/verify-video_cut_review` of this branch at
+`e5bcf08`. Judged against the owner's row 14 (answer `DELIVERED` / `SHORTFALL` + the missing item; also refuses
+a brief with no runtime) and the shared role-contract inputs, refusals and rules; the builder's claims above were
+not used as evidence.
+
+| Check | How | Result | Grade |
+|---|---|---|---|
+| Source identity | `sha256sum` | contract `4b7972d3c75ca843fe64db4122ea1dd1616f42053509c161882775f892883b7d`, tests `8e1baf8e6342edd52172e42fd04d478e3de2e7521b2fbe4a74a0e801423d9174`; contract hash identical before and after the mutations | OBSERVED |
+| Lint | `genlayer_lint_contract` on the full contract source (pasted from the file as read; byte identity of the paste not machine-checked) | `ok: true`, 0 errors, 0 warnings, 0 info, `findings: []` | OBSERVED |
+| Tests | `python3 -m pytest tests/factory/test_video_cut_review.py -q` (Python 3.13, pytest 9.1.1, genlayer-test 0.29.2 direct mode) | `22 passed in 0.90s`; again `22 passed in 0.61s` after every mutation was reverted | OBSERVED |
+| Coverage: answers | read the tests | `DELIVERED` → `test_delivered_when_the_cut_meets_the_brief` (whole return value and stored record asserted, item `""`); `SHORTFALL` + missing item → `test_shortfall_names_the_missing_item_quoted_from_the_terms` (item quoted from the terms asserted), also `test_shortfall_item_may_be_quoted_from_the_delivery_account`. Gaps: none | OBSERVED |
+| Coverage: must-refuse | read the tests, the contract's `ERR_*` constants and gltest 0.29.2 `expect_revert` (literal substring of the exception text, not a regex) | each case has its own test asserting the full fixed text, identical to the contract constant: no runtime → `test_refuses_a_brief_with_no_runtime` (`[EXPECTED] NO_RUNTIME: ...`, 25 variants); hash mismatch → `test_refuses_an_evidence_hash_that_does_not_match` (`[EXPECTED] EVIDENCE_HASH_MISMATCH: ...`); same case twice → `test_refuses_the_same_case_twice` (`[EXPECTED] SAME_CASE_TWICE: ...`); empty terms → `test_refuses_empty_terms` (`[EXPECTED] EMPTY_TERMS: ...`). All 24 `raise` statements in the contract are `gl.vm.UserError(ERR_*)`. Gaps: none | OBSERVED |
+| Safety | read the source; `ast` and `grep` | inputs are a public case id, public terms text, a public delivery account and a sha256; nothing asks for names, emails, ages or private evidence (the doc block tells callers not to send them); no key handling, signing, sending, value transfer, other-contract call or web fetch; the only non-deterministic call is `gl.nondet.exec_prompt` inside `gl.vm.run_nondet_unsafe`; runner pinned (`py-genlayer:1jb45aa8…09h6`), line 2 blank; the validator checks the leader's shape, re-runs the judgment and compares only the verdict word; every LLM call in the tests is mocked (`direct_vm.mock_llm`). Note, not a fail: the block documenting the constructor is a string after `from genlayer import *`, so it is not the real module docstring (`ast.get_docstring` → `None`), the same layout as earlier factory contracts. Findings: none | OBSERVED |
+| Mutation M1 | removed `_require_runtime(terms)` from `review_cut` | caught: `test_refuses_a_brief_with_no_runtime`, `test_a_refused_review_does_not_lock_the_case` | OBSERVED |
+| Mutation M2 | swapped the verdict words (`VERDICT_OK = "SHORTFALL"`, `VERDICT_SHORT = "DELIVERED"`) | caught by 17 tests, including `test_delivered_when_the_cut_meets_the_brief`, `test_shortfall_names_the_missing_item_quoted_from_the_terms`, `test_validator_agrees_on_the_verdict_word_not_the_wording` | OBSERVED |
+| Mutation M3 | removed the `candidate != _sha256_hex(account)` comparison in `_check_evidence_hash` | caught: `test_refuses_an_evidence_hash_that_does_not_match` | OBSERVED |
+| Mutation M4 | removed the `case in self.reviews` → `SAME_CASE_TWICE` check | caught: `test_refuses_the_same_case_twice` | OBSERVED |
+| Mutation M5 | validator always returns `True` | caught: `test_validator_agrees_on_the_verdict_word_not_the_wording`, `test_validator_agrees_on_delivered` | OBSERVED |
+| Mutation M6 | empty-terms check reduced to the type check (blank terms fall through to the runtime check) | caught: `test_refuses_empty_terms` | OBSERVED |
+| Restore | `git checkout -- contracts/factory/video_cut_review.py` after each mutation, then `sha256sum` and `git status --porcelain` | hash back to `4b7972d3…3b7d` after each; tree clean (pytest `__pycache__` removed); no mutation committed | OBSERVED |
+
+Not re-run by the verifier (not required): Studionet reachability, schema and deploy simulation. Observation for
+the owner, from reading the runtime check (not a defect against the row): a label followed by other words before
+the colon, such as `Runtime (master): 90 s`, is refused as no runtime, while a bare `Duration: 8 hours` passes
+the form check (the builder lists the second under Open questions).
+
+Verifier verdict: PASS
