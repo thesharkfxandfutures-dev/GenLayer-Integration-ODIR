@@ -59,3 +59,20 @@ Two parties claim one photograph; decide whose claim the public evidence support
   answer), with the deciding fact quoted.
 - **Must refuse:** a third claimant; a statement edited after both are in; a decision request
   before both statements exist.
+
+## 8. recognition_plaque_award — `drafted (PR #10)`
+
+Award contract: percentage plaques, Top 1%, 3%, 5%, 10%. Does the band hold by actual rank ÷
+eligible entrants (decided by rank, never by a rounded percentage), with each person counted once?
+(Owner page, main table, row 8.)
+
+- **Inputs:** role key, scope + area code, season, rank, eligible entrants, band, snapshot hash
+  (the draft adds a public `entrant_id` hash and a public `ranking_basis` text).
+- **Decision:** `BAND_CONFIRMED` / `NOT_ELIGIBLE` + the actual percentage. Integer arithmetic
+  (`rank * 100 <= band * eligible_entrants`), no LLM.
+- **Must refuse:** a band outside the four; a cohort below the minimum; a second verdict for the
+  same entrant, role, area and season.
+- **Award rules (rows 7–12):** one universal contract for all 45 roles, taking the role key as an
+  input (shape checked; the list is not checked on chain); refuse any input that carries a
+  forbidden selection signal (likes, followers, votes, paid plan or boost), because paid
+  membership must never improve anyone's chance of an award.
