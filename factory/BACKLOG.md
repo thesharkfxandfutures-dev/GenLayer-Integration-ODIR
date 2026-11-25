@@ -60,7 +60,7 @@ Two parties claim one photograph; decide whose claim the public evidence support
 - **Must refuse:** a third claimant; a statement edited after both are in; a decision request
   before both statements exist.
 
-## 6. agreement_registry — `drafted (PR pending)`
+## 6. agreement_registry — `drafted (PR #6)`
 
 Owner's page, main table, row 4. No judgment: records that an agreement exists and which state it
 is in (ODIR Brain slice B2).

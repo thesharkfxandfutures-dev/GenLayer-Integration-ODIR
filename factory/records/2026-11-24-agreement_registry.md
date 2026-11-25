@@ -153,3 +153,23 @@ opened by this builder (the orchestrator opens it).
 VERDICT: DRAFTED — lint clean, 61 direct-mode tests pass, Studionet reachable and the deploy
 simulation's constructor returned; schema NOT_RUN (hosted Studionet); post-deploy transaction
 report and view read pending the owner's deploy.
+
+## Independent verification — 25 Nov 2026 (scheduled factory run)
+
+A separate verifier agent (not the builder) checked out this branch at `68cfec38d6a7a137b8a7302af357fa43e433d531`
+and judged it from the code, the tests and page row 4, without this record. **Verdict: PASS.**
+
+| Check | Attempt | Result | Grade | Evidence |
+|---|---|---|---|---|
+| Contract sha256 | 1 | `5d805a0530207180f583292bfb18f2f77113dce0b7c84ec91142fbcda133936d` | OBSERVED | unchanged after all mutations were reverted |
+| genskill lint (full source) | 1 | `ok: true`, 0 errors, 0 warnings, 0 info | OBSERVED | source pasted into the tool call; byte identity not machine-checked |
+| pytest (genlayer-test 0.29.2 direct mode) | 1 | `61 passed in 1.17s` | OBSERVED | re-run in the verifier's own clone |
+| Every row item has a test; refusals exact | 1 | yes | OBSERVED | duplicate id, other caller (all 4 writes), invalid/unknown state, relayer owner-only actions; helper checks `exc.message == text` |
+| Mutations caught | 1 | 5 of 5 | OBSERVED | duplicate check removed → 1 failed; backward moves allowed → 5 failed; relayer allowed owner-only → 1 failed; any caller allowed → 3 failed; refusal text suffixed → 5 failed; each reverted, tree clean |
+| Studionet schema (endpoint re-probe) | 1 | `unsupported_contract_rpc` (`studionet-hosted`, upstream `Internal database error (code -32603)`) | NOT_RUN | orchestrator probe with a 15-line contract, 25 Nov ~00:01 UTC; endpoint limitation, not this contract |
+| Studionet reachability | 1 | healthy, chain `0xf22f`, block `0x6b062555` | OBSERVED | orchestrator `genlayer_network_status`, 25 Nov ~00:01 UTC |
+
+Notes from the verifier (not defects): the doc block sits after `from genlayer import *`, so Python does not see it
+as `__doc__` (the constructor is still documented at the top of the file; lint accepts it). `base` is free printable
+text, so "public data only" for it is enforced by callers. Not reproduced by the verifier: the Studionet deploy
+simulation above (not in its brief).
