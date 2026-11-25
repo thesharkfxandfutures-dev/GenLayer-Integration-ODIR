@@ -174,3 +174,57 @@ VERDICT: DRAFTED — lint clean, 18 direct-mode tests pass with the model mocked
 caught, Studionet reachable and the deploy simulation constructs (`00`); schema NOT_RUN (endpoint). The PR
 stays a draft until the owner deploys and the post-deploy Studionet check (transaction report and a view
 read) passes.
+
+## Independent verification (verifier agent, 2026-11-25T05:30Z)
+
+Checked in a fresh clone of branch `factory/service_medal_award-2026-11-25` at HEAD
+`2433dbe8215fa26d116f0a88b7775a9b3f880377`, working from the contract, the tests and the owner's row 10 and
+the award-table rule (rows 7-12) before reading this record.
+
+- contract sha256: `6235a2768400ef7974997210b67a194b170aa25f90108fc55e32eda0a975fe95`
+- test sha256: `a7e55dfe5f3bba4d950da421d0f299f89c04fb06e2bc683904dd2baa3de6fe32`
+
+| Check | Attempt | Result | Grade | Evidence |
+|---|---|---|---|---|
+| genskill lint | `genlayer_lint_contract` on the full source | 0 errors, 0 warnings, 0 infos | OBSERVED | `ok: true`, "Looks deployable" |
+| pytest | `python3 -m pytest tests/factory/test_service_medal_award.py -q` (genlayer-test 0.29.2) | 18 passed | OBSERVED | `18 passed in 0.48s` |
+| Answer words | read tests | `MEDAL_CONFIRMED` (gap 0) and `NOT_YET` (+ gap) both asserted, every medal 1/5/10/15/20/25, edges (exact, one short, zero years) | OBSERVED | `test_medal_confirmed_...`, `test_not_yet_reports_the_gap`, `test_verdict_and_gap_follow_...`, `test_edges_...` |
+| Must refuse: years outside the six | read tests | 0,2,3,4,6,9,11,30,50,-5, True, "5", None refused on write and read with the exact `MEDAL_YEARS_NOT_OFFERED` text, no model mock (refusal precedes the model) | OBSERVED | `test_refuses_medal_years_outside_the_six` |
+| Must refuse: same medal twice | read tests | second decision refused with exact `MEDAL_ALREADY_DECIDED` text, also with upper-case padded id, new summary and hash; also after a confirmed medal; other medal/role/entrant allowed | OBSERVED | `test_refuses_the_same_medal_twice` |
+| Award rule: forbidden signals | read tests | likes, followers, votes, voting, upvoted, paid plan, subscription, premium, membership tier, boost(ed) refused in the summary; role keys with premium/boosted/paid_plan/followers/votes refused; exact `FORBIDDEN_SIGNAL` text; whole-word acceptance ("devoted", "likeness") | OBSERVED | `test_refuses_an_activity_summary_...`, `test_refuses_a_role_key_...` |
+| Other refusals exact text | read tests | BAD_ROLE_KEY, BAD_ENTRANT_ID, BAD_ACTIVITY_HASH, EMPTY_ACTIVITY_SUMMARY, ACTIVITY_SUMMARY_TOO_LONG, OWNER_ONLY, NO_DECISION, BAD_INDEX, four LLM_ERROR texts each asserted | OBSERVED | tests listed in file |
+| Validator compares the verdict word | read source and tests | validator re-derives the leader's verdict and gap from the leader's count, disagrees on a different verdict word, accepts a different count/reason with the same word, NOT_YET gap within 1; forged or malformed leader results and leader errors rejected | OBSERVED | `_judge` / `validator_fn`; three `test_validator_*` tests |
+| Safety: calldata | read `decide_medal` signature | arguments are a sha256 entrant id, role key, medal years, a dated activity summary written for publication and a sha256; no names or emails fields; prompt excludes entrant id, activity hash and medal sought (asserted) | OBSERVED | `test_prompt_carries_the_public_inputs_only` |
+| Safety: source | grep for private, key, sign, raw_rpc, submit, eth_send, web calls | only `role_key`/`medal_key`/`sort_keys` hits and docstring prose; no key, signing, sending or web call; the model call is mocked in every test | OBSERVED | grep output |
+| Deploy simulation | not run by the verifier | the deploy calldata is the whole source in hex (about 36 KB), too large to pass by hand to the call tool without risk of corrupting it | NOT_RUN | tooling limit, not a contract defect |
+
+### Mutations (one at a time, each reverted with `git checkout -- <file>`)
+
+| # | Mutation | Caught by |
+|---|---|---|
+| M1 | skip the already-decided refusal | `test_refuses_the_same_medal_twice` |
+| M2 | loosen the medal-years check to any positive integer | `test_refuses_medal_years_outside_the_six` |
+| M3 | validator no longer compares the verdict word | `test_validator_agrees_on_the_verdict_word_not_the_wording` |
+| M4 | verdict boundary `>=` changed to `>` | 3 tests (edges, malformed role keys, validator) |
+| M5 | summary not scanned for forbidden signals | `test_refuses_an_activity_summary_with_a_forbidden_signal` |
+| M6 | boost terms removed from the forbidden list | 3 tests (summary, role key, fresh-contract read) |
+| M7 | validator gap tolerance widened from 1 to 5 | `test_validator_on_not_yet_needs_a_gap_within_one_year` |
+| M8 | gap off by one | 8 tests |
+| M9 | role key not scanned for forbidden signals | `test_refuses_a_role_key_with_a_forbidden_signal` |
+| M10 | wording of the MEDAL_YEARS_NOT_OFFERED text changed | `test_refuses_medal_years_outside_the_six` |
+| M11 | owner check removed | `test_only_the_owner_decides` |
+
+11 of 11 caught. After the last revert the contract sha256 was again
+`6235a2768400ef7974997210b67a194b170aa25f90108fc55e32eda0a975fe95` and `git status` was clean (the
+`__pycache__` folders pytest wrote were deleted).
+
+### Observations (not defects)
+
+- The forbidden-signal filter is lexical, whole-word and ASCII-case-folded: it can be evaded by wording the
+  list does not contain or by splitting a term with a non-letter character, and it refuses a summary that only
+  mentions a term in negation. The model is also told never to weigh those signals; the record's own
+  "Not verified" section already states the limit.
+- The model's real counting, GenVM execution and multi-validator consensus were not exercised (direct mode
+  only, as the brief allows).
+
+**Verdict: PASS**
