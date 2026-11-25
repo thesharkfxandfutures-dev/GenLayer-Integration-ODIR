@@ -50,12 +50,13 @@ Judge whether a late cancellation or no-show reason justifies a trust penalty.
   (`MINOR` / `STANDARD` / `SEVERE`) with the clause relied on.
 - **Must refuse:** a reason submitted after the case is closed; a severity outside the bands.
 
-## 5. photo_claim_adjudication — `todo`
+## 5. photo_claim_adjudication — `drafted (PR #8)`
 
-Two parties claim one photograph; decide whose claim the public evidence supports.
+Two people claim one photograph: whose claim does the public evidence support?
+(Owner page, main table, row 6.)
 
-- **Inputs:** each party's statement, first-publication URL and date, and an evidence hash.
-- **Decision:** `CLAIMANT_A`, `CLAIMANT_B` or `UNDECIDED` (insufficient evidence is a valid
-  answer), with the deciding fact quoted.
-- **Must refuse:** a third claimant; a statement edited after both are in; a decision request
-  before both statements exist.
+- **Inputs:** each party's statement, first-publication URL and date, evidence hash.
+- **Decision:** `CLAIMANT_A` / `CLAIMANT_B` / `UNDECIDED` + the deciding fact quoted
+  (insufficient evidence is a valid answer).
+- **Must refuse:** a third claimant; a statement edited after both are in; a decision before
+  both exist.
