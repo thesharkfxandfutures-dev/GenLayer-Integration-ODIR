@@ -38,12 +38,17 @@ jobs:
       - name: Templates — check and render every role x base pair
         run: node resolver/bin/render-all.mjs
       - name: Role commits touch only their own folder
+        # Pull request: every commit in the PR. Push: the commits this push added (on main too, so a
+        # squash or a direct push is checked after the fact); a new branch: everything not on main.
         env:
           PR_BASE: ${{ github.event.pull_request.base.sha }}
           PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
         run: |
           if [ -n "$PR_BASE" ]; then
             BASE="$PR_BASE"; HEAD="$PR_HEAD"
+          elif [ -n "$PUSH_BEFORE" ] && [ "$PUSH_BEFORE" != "0000000000000000000000000000000000000000" ] && git cat-file -e "$PUSH_BEFORE^{commit}" 2>/dev/null; then
+            BASE="$PUSH_BEFORE"; HEAD="$(git rev-parse HEAD)"
           else
             BASE="$(git merge-base origin/main HEAD)"; HEAD="$(git rev-parse HEAD)"
           fi

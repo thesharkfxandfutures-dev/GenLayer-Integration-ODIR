@@ -33,15 +33,26 @@ themselves, the **consumer** variant. Every clause belongs to one of 13 categori
   CPython `json.dumps(sort_keys=True, separators=(',', ':'), ensure_ascii=True)`), written
   `sha256:<hex>`. A template's hash and the document's `terms_hash` leave out every `style` block, so
   paper, ink and emphasis can change; one changed word changes the hash.
+- **Salt**: in agreement mode the server passes `salt` (32 random bytes, hex) and it is hashed with the
+  document, so the terms hash of a filled agreement cannot be matched against guessed venues, dates
+  or fees. Template mode has no salt.
+- **Plain text only**: clause text, labels, titles, overrides and values must be Unicode NFC and hold
+  no invisible or direction-changing characters; typed values follow their type (`£650`, `09:00`,
+  `14 March 2027`, `12 months`, whole numbers without leading zeros). The parties' overrides are
+  plain text, marked as overrides, and never placed under Acceptance and seal; clauses that state a
+  party's status (consumer, business, independent contractor) are locked.
 - **STALE**: a module records the base versions it was drafted against; a different base version
   marks it stale, and `render-all` fails.
+- **Role commits**: a commit that touches a role folder touches nothing else. Paths are read
+  NUL-separated; a merge commit is checked on what the merge itself changed. CI checks every commit
+  of a pull request, and on a push the commits that push added (on `main` too).
 
 ## Commands
 
 ```bash
 cd resolver
 npm test                                   # unit, golden and CLI tests
-node bin/render-all.mjs [--out dir]        # check every template, render every role x base pair
+node bin/render-all.mjs [--out dir]        # check every template; render every role x base pair and role pair, and fill each once
 node bin/check-role-commits.mjs --base <rev> [--head <rev>]   # a role commit touches only its own folder
 UPDATE_GOLDEN=1 npm test                   # accept an intended wording change; commit the golden diff with it
 ```

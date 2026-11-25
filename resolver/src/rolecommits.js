@@ -39,14 +39,22 @@ export function checkRoleCommits(commits) {
 
 const git = (cwd, ...a) => execFileSync('git', a, { cwd, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
 
-// The non-merge commits in base..head with the paths each touches (renames split into a delete and
-// an add, so both sides count). Merge commits are listed separately and not checked.
+// Every commit in base..head with the paths it touches. Paths are read NUL-separated (-z), so a
+// non-ASCII path is never quoted and always matches. Renames are split into a delete and an add, so
+// both sides count. A merge commit is checked on what the merge itself changed (-c: the paths that
+// differ from every parent — conflict resolutions and "evil merge" edits); what it brings in from
+// its other parent is checked as those commits.
 export function commitsInRange(cwd, base, head) {
-  const shas = git(cwd, 'rev-list', '--reverse', '--no-merges', `${base}..${head}`).split('\n').filter(Boolean);
-  const merges = git(cwd, 'rev-list', '--merges', `${base}..${head}`).split('\n').filter(Boolean);
+  const list = (args) => git(cwd, ...args).split('\n').filter(Boolean);
+  const nulPaths = (out) => out.split('\0').filter(Boolean);
+  const shas = list(['rev-list', '--reverse', `${base}..${head}`]);
+  const merges = new Set(list(['rev-list', '--merges', `${base}..${head}`]));
   const commits = shas.map((sha) => ({
     sha,
-    files: git(cwd, 'diff-tree', '--root', '--no-commit-id', '--name-only', '--no-renames', '-r', sha).split('\n').filter(Boolean),
+    merge: merges.has(sha),
+    files: merges.has(sha)
+      ? nulPaths(git(cwd, 'diff-tree', '-z', '-c', '--no-commit-id', '--name-only', '-r', sha))
+      : nulPaths(git(cwd, 'diff-tree', '-z', '--root', '--no-commit-id', '--name-only', '--no-renames', '-r', sha)),
   }));
-  return { commits, merges };
+  return { commits, merges: [...merges] };
 }

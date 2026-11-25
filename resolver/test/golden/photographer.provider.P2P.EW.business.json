@@ -7,6 +7,7 @@
   "jurisdiction": "EW",
   "jurisdiction_name": "England and Wales",
   "consumer": false,
+  "salt": null,
   "roles": {
     "engager": null,
     "provider": "photographer"
@@ -31,7 +32,7 @@
     "base": {
       "key": "P2P",
       "version": 1,
-      "sha256": "sha256:0403ad2a66d533b1d45dab47fea3a5a460586168890c43d038cacf6a7abca41a"
+      "sha256": "sha256:66788a4a1953c3248a12f56ef6bfbf5f62fe1c884ab341623ca77f3e2d85746d"
     },
     "engager_module": null,
     "provider_module": {
@@ -65,7 +66,7 @@
           "text": "The Client books for the purposes of their trade, business or profession, not as a consumer.",
           "source": "base",
           "replaces": null,
-          "locked": false,
+          "locked": true,
           "checkable": false
         },
         {
@@ -233,7 +234,7 @@
         {
           "id": "p2p.pay.2",
           "category": "pay",
-          "text": "A deposit of {{deposit}} is due when both parties have signed. The balance is due within {{payment_days}} days of the work being completed.",
+          "text": "A deposit of {{deposit}} (£0 means none) is due when both parties have signed. The balance is due within {{payment_days}} days of the work being completed.",
           "source": "base",
           "replaces": null,
           "locked": false,
@@ -644,7 +645,7 @@
       "label": "Deposit",
       "category": "pay",
       "type": "money",
-      "default": "no deposit",
+      "default": "£0",
       "value": null,
       "source": "base"
     },
@@ -781,5 +782,5 @@
     "heading_font": "serif",
     "seal_colour": "red"
   },
-  "terms_hash": "sha256:ddee2635841fe29bdcc760f66bc167759603da1d6f76a8b28d332286e3b03fb0"
+  "terms_hash": "sha256:ddc4e50560ebbcd248c5710a94e9962f65008020977a1bcf012f2c68b248e237"
 }

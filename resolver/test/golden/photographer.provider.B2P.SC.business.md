@@ -5,15 +5,15 @@
 - Base: B2P · Law: Scotland · Business engager · Mode: template
 - Engager: the Client, organisation
 - Provider: the Photographer (Photographer), person
-- Base B2P v1 `sha256:9ff44a41bf7018b16aff9fcee7e8b0669810d88fa7ef65926228089c74d87ea5`
+- Base B2P v1 `sha256:614bbe598ddcad1eae00a4e5b0963e99b8b36c2e6f815585667f268ec401673f`
 - provider module photographer v1 `sha256:28c15920d4687409c98e3444926d8826d56f328ee23889323748157ce746ed2e`
-- Terms hash: `sha256:4b42e073c6c98b4ec3b55ada546fe578d00ab233e58e2a77074df9f1bd221ba3`
+- Terms hash: `sha256:f6401d6464432124d7f9285453c659cf214c1ed7b507b40335a2f8d520a5bbc7`
 
 ## Cover
 
 - This agreement is between the Client, an organisation that books and pays, and the Photographer, an individual who does the work. _[parties_authority, locked]_
 - The Client signs through a representative who confirms they have authority to bind it. SnapLink checks that authority when they sign. _[parties_authority, locked]_
-- The Photographer works as an independent contractor in business on their own account, not as an employee or worker of the Client. _[parties_authority]_
+- The Photographer works as an independent contractor in business on their own account, not as an employee or worker of the Client. _[parties_authority, locked]_
 - The Photographer confirms that the portfolio on their SnapLink profile is their own work. _[parties_authority, provider module]_
 
 ## 1. Role and duties
@@ -39,7 +39,7 @@
 ## 3. Pay
 
 3.1 The Client will pay the Photographer {{fee}} ({{rate_basis}}). _[pay]_
-3.2 A deposit of {{deposit}} is due when both parties have signed. The balance is due within {{payment_days}} days of the work being completed. _[pay]_
+3.2 A deposit of {{deposit}} (£0 means none) is due when both parties have signed. The balance is due within {{payment_days}} days of the work being completed. _[pay]_
 3.3 The Photographer is {{vat_status}}. _[pay]_
 3.4 Where the Photographer is registered for VAT, VAT is added to the fee at the rate in force when it is invoiced. _[pay]_
 3.5 The Photographer is responsible for their own income tax and National Insurance on the fee. _[pay]_
@@ -99,7 +99,7 @@
 - `{{finish_time}}` Finish time (time, time_hours)
 - `{{fee}}` Fee (money, pay)
 - `{{rate_basis}}` Rate basis (hourly, day or fixed fee) (text, pay) — default: a fixed fee
-- `{{deposit}}` Deposit (money, pay) — default: no deposit
+- `{{deposit}}` Deposit (money, pay) — default: £0
 - `{{payment_days}}` Days to pay the balance (number, pay) — default: 30
 - `{{vat_status}}` Provider’s VAT status and number (text, pay) — default: not registered for VAT
 - `{{notice_hours}}` Cancellation notice (hours) (number, cancellation_no_show) — default: 48

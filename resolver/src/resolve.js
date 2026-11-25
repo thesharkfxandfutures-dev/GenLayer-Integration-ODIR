@@ -13,14 +13,15 @@ import {
 } from './categories.js';
 import { overridesHash, templateHash, termsHash } from './hash.js';
 import {
-  PLACEHOLDER, TemplateError, agreementProblems, assertBase, assertModule, lintText, placeholdersIn,
+  PLACEHOLDER, TemplateError, agreementProblems, assertBase, assertModule, formatProblem, lintText, placeholdersIn, plainProblems,
 } from './validate.js';
 
 export class ResolveError extends TemplateError {}
 
 const SOURCES = ['base', 'engager_module', 'provider_module', 'override'];
 const OVERRIDE_ID = /^o\.[a-z0-9_]+$/;
-const OVERRIDE_KEYS = new Set(['id', 'category', 'text', 'replaces', 'section']);
+const OVERRIDE_KEYS = new Set(['id', 'category', 'text', 'replaces']);
+const SALT = /^[0-9a-f]{64}$/;
 const VALUE_MAX = 300;
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -47,8 +48,6 @@ function checkOverrides(overrides) {
       if (/\{\{|\}\}|\[\[|\]\]/.test(o.text)) out.push(`${at}: an override is plain text — no blanks or terms`);
     }
     if (o.replaces !== undefined && typeof o.replaces !== 'string') out.push(`${at}: replaces must be a clause id`);
-    if (o.section !== undefined && o.section !== 'acceptance') out.push(`${at}: section may only be "acceptance"`);
-    if (o.section === 'acceptance' && !['parties_authority', 'disputes_record'].includes(o.category)) out.push(`${at}: only parties_authority or disputes_record clauses may sit under Acceptance and seal`);
   });
   return out;
 }
@@ -58,9 +57,11 @@ function checkValue(field, value, at) {
   if (!value.length || value.length > VALUE_MAX) return `${at}: value must be 1 to ${VALUE_MAX} characters`;
   if (value !== value.trim()) return `${at}: value has leading or trailing whitespace`;
   if (/[\u0000-\u001f\u007f\u2028\u2029]/.test(value)) return `${at}: value holds a control or line-break character`;
+  const plain = plainProblems(value, `${at}: value`);
+  if (plain.length) return plain[0];
   if (/\{|\}|\[\[|\]\]/.test(value)) return `${at}: value cannot hold braces or [[ ]]`;
-  if (field.type === 'number' && !/^\d{1,9}$/.test(value)) return `${at}: value must be a whole number`;
-  return null;
+  const bad = formatProblem(field.type, value);
+  return bad ? `${at}: value ${bad}` : null;
 }
 
 /**
@@ -68,7 +69,7 @@ function checkValue(field, value, at) {
  * Throws ResolveError (with .problems) on anything it will not resolve.
  */
 export function resolve({
-  base, engager = null, provider = null, overrides = [], jurisdiction, consumer = false, mode = 'template', values = {}, title = null,
+  base, engager = null, provider = null, overrides = [], jurisdiction, consumer = false, mode = 'template', values = {}, title = null, salt = null,
 } = {}) {
   assertBase(base);
   if (engager) assertModule(engager);
@@ -81,7 +82,9 @@ export function resolve({
   if (consumer && engager) problems.push('a consumer engager books for themselves, not as a role: no engager module');
   if (engager && !engager.engager?.bases.includes(base.key)) problems.push(`role ${engager.role_key} does not take the engager slot under ${base.key}`);
   if (provider && !provider.provider?.bases.includes(base.key)) problems.push(`role ${provider.role_key} does not take the provider slot under ${base.key}`);
-  if (title !== null && (typeof title !== 'string' || !title.trim() || title.length > 160 || title !== title.trim() || /[\u0000-\u001f\u007f{}]|\[\[|\]\]/.test(title))) problems.push('title must be 1 to 160 plain characters');
+  if (title !== null && (typeof title !== 'string' || !title.trim() || title.length > 160 || title !== title.trim() || /[\u0000-\u001f\u007f{}]|\[\[|\]\]/.test(title) || plainProblems(title, 'title').length)) problems.push('title must be 1 to 160 plain characters');
+  if (mode === 'agreement' && (typeof salt !== 'string' || !SALT.test(salt))) problems.push('agreement mode needs a salt: 64 lower-case hex characters (32 random bytes) chosen by the server');
+  if (mode === 'template' && salt !== null) problems.push('template mode takes no salt');
   if (values === null || typeof values !== 'object' || Array.isArray(values)) problems.push('values must be an object');
   if (mode === 'template' && values && Object.keys(values).length) problems.push('template mode takes no values');
   problems.push(...checkOverrides(overrides));
@@ -113,7 +116,7 @@ export function resolve({
       if (!applies(c.when, ctx)) continue;
       const entry = {
         id: c.id, category: c.category, text: c.text, source: layer.source, replaces: null,
-        locked: c.locked === true, checkable: c.checkable === true, section: c.section || null,
+        locked: c.locked === true, checkable: c.checkable === true, section: layer.source === 'override' ? null : c.section || null,
         ...(c.style ? { style: { ...c.style } } : {}),
       };
       if (c.replaces === undefined) { list.push(entry); continue; }
@@ -199,6 +202,7 @@ export function resolve({
     jurisdiction,
     jurisdiction_name: JURISDICTIONS[jurisdiction].name,
     consumer,
+    salt: mode === 'agreement' ? salt : null,
     roles: { engager: engager?.role_key ?? null, provider: provider?.role_key ?? null },
     parties: [
       { slot: 'engager', label: labels.engager, role: engager?.role_key ?? null, role_label: engager?.role_label ?? null, kind: BASES[base.key].engager },

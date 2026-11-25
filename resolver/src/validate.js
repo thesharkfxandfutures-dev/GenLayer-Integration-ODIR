@@ -27,10 +27,39 @@ export const PLACEHOLDER = /\{\{([a-z][a-z0-9_]{0,63})\}\}/g;
 export const TERMS = Object.freeze(['engager', 'Engager', 'provider', 'Provider', 'jurisdiction', 'courts']);
 const TERM = /\[\[([A-Za-z]+)\]\]/g;
 
+// Zero-width, soft-hyphen, bidi embedding/override/isolate and BOM characters: they change what a
+// reader sees, or how it is ordered, without changing what is hashed in an obvious way.
+export const INVISIBLE = /[\u00ad\u200b-\u200f\u202a-\u202e\u2060-\u2064\u2066-\u2069\ufeff]/u;
+
+// Text that is hashed must look like what it is: no invisible characters, and Unicode NFC only
+// (so "café" has one encoding and one hash).
+export function plainProblems(text, at) {
+  if (typeof text !== 'string') return [`${at}: must be a string`];
+  const out = [];
+  if (INVISIBLE.test(text)) out.push(`${at}: holds an invisible or direction-changing character`);
+  if (text !== text.normalize('NFC')) out.push(`${at}: not in Unicode NFC form`);
+  return out;
+}
+
+const MONTHS = 'January|February|March|April|May|June|July|August|September|October|November|December';
+export const VALUE_FORMATS = Object.freeze({
+  number: { re: /^(0|[1-9]\d{0,8})$/, say: 'a whole number without leading zeros' },
+  money: { re: /^[£€$](0|[1-9]\d{0,8})(\.\d{2})?$/, say: 'an amount such as £650 or £650.50' },
+  time: { re: /^([01]\d|2[0-3]):[0-5]\d$/, say: 'a 24-hour time such as 09:00' },
+  date: { re: new RegExp(`^([1-9]|[12]\\d|3[01]) (${MONTHS}) 20\\d{2}$`), say: 'a date such as 14 March 2027' },
+  duration: { re: /^[1-9]\d{0,3} (hours?|days?|weeks?|months?|years?)$/, say: 'a period such as 12 months' },
+});
+// null when the value suits the field type ('text' is free).
+export function formatProblem(type, value) {
+  const f = VALUE_FORMATS[type];
+  return f && !f.re.test(value) ? `must be ${f.say}` : null;
+}
+
 // Problems with one clause text: stray or malformed {{ }} / [[ ]], unknown terms, untrimmed text.
 export function lintText(text, at) {
   const out = [];
   if (typeof text !== 'string') return [`${at}: text must be a string`];
+  out.push(...plainProblems(text, at));
   if (text !== text.trim()) out.push(`${at}: leading or trailing whitespace`);
   if (/\s{2,}/.test(text)) out.push(`${at}: repeated whitespace`);
   const rest = text.replace(PLACEHOLDER, '').replace(TERM, (m, t) => {
@@ -79,8 +108,11 @@ function fieldProblems(fields = [], { at, allowRefines }) {
     if (keys.has(f.key)) out.push(`${where}: duplicate field key`);
     keys.add(f.key);
     if (f.refines !== undefined && !allowRefines) out.push(`${where}: a base field cannot refine another`);
+    out.push(...plainProblems(f.label, `${where}.label`));
     if (f.default !== undefined) out.push(...lintText(f.default, `${where}.default`).filter((p) => !p.includes('repeated whitespace')));
     if (f.default !== undefined && /\{\{|\}\}|\[\[|\]\]/.test(f.default)) out.push(`${where}: a default cannot hold a blank or a term`);
+    const bad = f.default !== undefined && formatProblem(f.type, f.default);
+    if (bad) out.push(`${where}.default: ${bad}`);
   }
   return out;
 }
@@ -88,6 +120,7 @@ function fieldProblems(fields = [], { at, allowRefines }) {
 export function baseProblems(base) {
   const out = schemaProblems('base-template', base);
   if (out.length) return out;
+  for (const k of ['title', 'summary', 'notice']) if (base[k] !== undefined) out.push(...plainProblems(base[k], `$.${k}`));
   const kinds = BASES[base.key];
   if (base.engager_kind !== kinds.engager || base.provider_kind !== kinds.provider) out.push(`$: ${base.key} is ${kinds.engager} → ${kinds.provider}`);
   if (base.consumer_variant && base.engager_kind !== 'person') out.push('$: only a base whose engager is a person can have a consumer variant');
@@ -108,6 +141,7 @@ export function moduleProblems(mod) {
   const out = schemaProblems('role-template', mod);
   if (out.length) return out;
   if (!mod.engager && !mod.provider) out.push('$: a module needs an engager or a provider slot');
+  for (const k of ['role_label', 'summary']) if (mod[k] !== undefined) out.push(...plainProblems(mod[k], `$.${k}`));
   const allIds = new Set();
   for (const slot of SLOTS) {
     const s = mod[slot];

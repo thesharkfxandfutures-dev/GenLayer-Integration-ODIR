@@ -14,6 +14,7 @@
     "jurisdiction",
     "jurisdiction_name",
     "consumer",
+    "salt",
     "roles",
     "parties",
     "sources",
@@ -69,6 +70,14 @@
     },
     "consumer": {
       "type": "boolean"
+    },
+    "salt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "agreement mode only: 32 random bytes chosen by the server and kept in SnapLink, so the terms hash of a filled agreement cannot be matched against guessed values (venue, date, fee). null in template mode."
     },
     "roles": {
       "type": "object",

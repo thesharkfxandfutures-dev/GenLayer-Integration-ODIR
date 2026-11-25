@@ -44,6 +44,17 @@ test('a later layer replaces an earlier clause in place, and the replacement is 
   assert.equal(doc.fields.some((f) => f.key === 'fee'), false, 'a blank only the replaced clause used is gone');
 });
 
+test('the provider module may replace an engager-module clause, never the other way round', () => {
+  const e = makeModule('alpha');
+  const p = makeModule('beta');
+  p.provider.clauses.push({ id: 'beta.provider.swap', category: 'pay', text: 'Paid weekly.', replaces: 'alpha.engager.pay.1' });
+  const doc = resolve({ base: makeBase(), engager: e, provider: p, jurisdiction: 'EW' });
+  assert.deepEqual(clause(doc, 'beta.provider.swap').replaces, { id: 'alpha.engager.pay.1', source: 'engager_module' });
+  const e2 = makeModule('alpha');
+  e2.engager.clauses.push({ id: 'alpha.engager.swap', category: 'pay', text: 'Paid monthly.', replaces: 'beta.provider.pay.1' });
+  has(problemsOf(() => resolve({ base: makeBase(), engager: e2, provider: makeModule('beta'), jurisdiction: 'EW' })), /replaces beta\.provider\.pay\.1, which is not in this variant/);
+});
+
 test('overrides come last, may replace a module clause, and are marked', () => {
   const doc = resolve({
     base: makeBase(), provider: makeModule(), jurisdiction: 'EW',
@@ -185,9 +196,8 @@ test('acceptance placement and the cover', () => {
   const acc = doc.sections.find((s) => s.key === 'acceptance').clauses.map((c) => c.id);
   assert.deepEqual(acc, ['p2p.acceptance.sign']);
   assert.deepEqual(doc.sections.find((s) => s.key === 'cover').clauses.map((c) => c.id), ['p2p.parties_authority.1']);
-  const withOverride = resolve({ base: makeBase(), jurisdiction: 'EW', overrides: [{ id: 'o.witness', category: 'disputes_record', section: 'acceptance', text: 'Signed in front of a witness.' }] });
-  assert.deepEqual(withOverride.sections.find((s) => s.key === 'acceptance').clauses.map((c) => c.id), ['p2p.acceptance.sign', 'o.witness']);
-  has(problemsOf(() => resolve({ base: makeBase(), jurisdiction: 'EW', overrides: [{ id: 'o.x', category: 'pay', section: 'acceptance', text: 'x' }] })), /only parties_authority or disputes_record/);
+  // the parties' overrides never reach Acceptance and seal
+  has(problemsOf(() => resolve({ base: makeBase(), jurisdiction: 'EW', overrides: [{ id: 'o.witness', category: 'disputes_record', section: 'acceptance', text: 'Signed in front of a witness.' }] })), /unexpected property section/);
 });
 
 test('overrides are plain text with a strict shape', () => {
@@ -199,12 +209,15 @@ test('overrides are plain text with a strict shape', () => {
   has(bad({ id: 'o.x', category: 'pay', text: 'a', locked: true }), /unexpected property locked/);
   has(bad({ id: 'o.x', category: 'pay', text: 'line\nbreak' }), /plain characters/);
   has(bad({ id: 'o.x', category: 'pay', text: '' }), /plain characters/);
-  has(bad({ id: 'o.x', category: 'pay', text: 'a', section: 'cover' }), /section may only be "acceptance"/);
+  has(bad({ id: 'o.x', category: 'pay', text: 'a', section: 'cover' }), /unexpected property section/);
+  has(bad({ id: 'o.x', category: 'pay', text: 'Paid \u202eyadot' }), /invisible or direction-changing/);
+  has(bad({ id: 'o.x', category: 'pay', text: 'Cafe\u0301 rules.' }), /not in Unicode NFC form/);
   has(problemsOf(() => resolve({ base: makeBase(), jurisdiction: 'EW', overrides: 'none' })), /overrides must be a list/);
 });
 
 test('agreement mode fills every blank from values, then defaults, in one pass', () => {
-  const doc = resolve({ base: makeBase(), provider: makeModule(), jurisdiction: 'EW', mode: 'agreement', values: { fee: '£250', item_count: '12' } });
+  const doc = resolve({ base: makeBase(), provider: makeModule(), jurisdiction: 'EW', mode: 'agreement', values: { fee: '£250', item_count: '12' }, salt: 'a'.repeat(64) });
+  assert.equal(doc.salt, 'a'.repeat(64));
   assert.equal(doc.mode, 'agreement');
   assert.equal(clause(doc, 'p2p.pay.1').text, 'The Client pays £250 within 14 days.');
   assert.match(clause(doc, 'tester.provider.duty.1').text, /deliver 12 items/);
@@ -215,7 +228,7 @@ test('agreement mode fills every blank from values, then defaults, in one pass',
 });
 
 test('agreement mode refuses missing, unknown and unsafe values', () => {
-  const run = (values, extra = {}) => problemsOf(() => resolve({ base: makeBase(), jurisdiction: 'EW', mode: 'agreement', values, ...extra }));
+  const run = (values, extra = {}) => problemsOf(() => resolve({ base: makeBase(), jurisdiction: 'EW', mode: 'agreement', values, salt: 'a'.repeat(64), ...extra }));
   has(run({}), /values\.fee: missing \(Fee\)/);
   has(run({ fee: '£1', tip: '£2' }), /values\.tip: not a blank/);
   has(run({ fee: '{{pay_days}}' }), /cannot hold braces/);
@@ -226,7 +239,19 @@ test('agreement mode refuses missing, unknown and unsafe values', () => {
   has(run({ fee: 'x'.repeat(301) }), /1 to 300 characters/);
   has(run({ fee: 12 }), /must be a string/);
   has(run({ fee: '£1', pay_days: 'fourteen' }), /whole number/);
+  has(run({ fee: '£1', pay_days: '007' }), /without leading zeros/);
+  has(run({ fee: '650' }), /an amount such as £650/);
+  has(run({ fee: '£1,200' }), /an amount such as £650/);
+  has(run({ fee: '£1\u200b' }), /invisible or direction-changing/);
+  has(run({ fee: '£1\u202e' }), /invisible or direction-changing/);
+  has(run({ fee: '£1', pay_days: '1\ufeff4' }), /invisible or direction-changing/);
+  has(problemsOf(() => resolve({ base: makeBase(), provider: makeModule(), jurisdiction: 'EW', mode: 'agreement', salt: 'a'.repeat(64), values: { fee: '£1', item_count: 'thre\u0301e' } })), /NFC|whole number/);
   has(problemsOf(() => resolve({ base: makeBase(), jurisdiction: 'EW', values: { fee: '£1' } })), /template mode takes no values/);
+  has(run({ fee: '£1' }, { salt: null }), /agreement mode needs a salt/);
+  has(run({ fee: '£1' }, { salt: 'A'.repeat(64) }), /agreement mode needs a salt/);
+  has(run({ fee: '£1' }, { salt: 'a'.repeat(63) }), /agreement mode needs a salt/);
+  has(problemsOf(() => resolve({ base: makeBase(), jurisdiction: 'EW', salt: 'a'.repeat(64) })), /template mode takes no salt/);
+  assert.equal(resolve({ base: makeBase(), jurisdiction: 'EW' }).salt, null);
 });
 
 test('a title may be given; otherwise it is built from the role and the base', () => {
@@ -234,6 +259,7 @@ test('a title may be given; otherwise it is built from the role and the base', (
   assert.equal(resolve({ base: makeBase(), engager: makeModule(), jurisdiction: 'EW' }).title, 'Tester engaging — Synthetic P2P base');
   assert.equal(resolve({ base: makeBase(), jurisdiction: 'EW', title: 'Wedding, 1 May' }).title, 'Wedding, 1 May');
   has(problemsOf(() => resolve({ base: makeBase(), jurisdiction: 'EW', title: 'Hi {{fee}}' })), /title must be/);
+  has(problemsOf(() => resolve({ base: makeBase(), jurisdiction: 'EW', title: 'a\u202eb' })), /title must be/);
 });
 
 test('a module drafted against another base version is marked stale', () => {
@@ -248,6 +274,6 @@ test('resolve never changes its inputs', () => {
   const base = makeBase();
   const prov = makeModule();
   const before = JSON.stringify([base, prov]);
-  resolve({ base, provider: prov, jurisdiction: 'EW', mode: 'agreement', values: { fee: '£1' } });
+  resolve({ base, provider: prov, jurisdiction: 'EW', mode: 'agreement', values: { fee: '£1' }, salt: 'a'.repeat(64) });
   assert.equal(JSON.stringify([base, prov]), before);
 });

@@ -7,6 +7,7 @@
   "jurisdiction": "EW",
   "jurisdiction_name": "England and Wales",
   "consumer": false,
+  "salt": "5a175a175a175a175a175a175a175a175a175a175a175a175a175a175a175a17",
   "roles": {
     "engager": null,
     "provider": "photographer"
@@ -31,7 +32,7 @@
     "base": {
       "key": "B2P",
       "version": 1,
-      "sha256": "sha256:9ff44a41bf7018b16aff9fcee7e8b0669810d88fa7ef65926228089c74d87ea5"
+      "sha256": "sha256:614bbe598ddcad1eae00a4e5b0963e99b8b36c2e6f815585667f268ec401673f"
     },
     "engager_module": null,
     "provider_module": {
@@ -74,7 +75,7 @@
           "text": "The Photographer works as an independent contractor in business on their own account, not as an employee or worker of the Client.",
           "source": "base",
           "replaces": null,
-          "locked": false,
+          "locked": true,
           "checkable": false
         },
         {
@@ -242,7 +243,7 @@
         {
           "id": "b2p.pay.2",
           "category": "pay",
-          "text": "A deposit of £300 is due when both parties have signed. The balance is due within 30 days of the work being completed.",
+          "text": "A deposit of £300 (£0 means none) is due when both parties have signed. The balance is due within 30 days of the work being completed.",
           "source": "base",
           "replaces": null,
           "locked": false,
@@ -698,7 +699,7 @@
       "label": "Deposit",
       "category": "pay",
       "type": "money",
-      "default": "no deposit",
+      "default": "£0",
       "value": "£300",
       "source": "base"
     },
@@ -835,5 +836,5 @@
     "heading_font": "serif",
     "seal_colour": "red"
   },
-  "terms_hash": "sha256:e44471be9c0fad303f3cfeeb5dfeebeb7676b037e1f72c331d4309c93c5dfcb1"
+  "terms_hash": "sha256:780d49e0f38f0ca491d733c127726cc1273e99501768b91f1b68efb70f2233d5"
 }

@@ -28,7 +28,7 @@ test('toParchment gives the shape the C1 parchment viewer reads', () => {
 test('toParchment carries names, filled values and replacement marks', () => {
   const m = makeModule();
   m.provider.clauses.push({ id: 'tester.provider.pay.swap', category: 'pay', text: 'Paid on the day.', replaces: 'p2p.pay.1' });
-  const doc = resolve({ base: makeBase(), provider: m, jurisdiction: 'EW', mode: 'agreement', values: {} });
+  const doc = resolve({ base: makeBase(), provider: m, jurisdiction: 'EW', mode: 'agreement', values: {}, salt: 'a'.repeat(64) });
   const p = toParchment(doc, { names: { engager: 'Ada Example', provider: 'Sam Sample' } });
   assert.deepEqual(p.parties.map((x) => x.name), ['Ada Example', 'Sam Sample']);
   assert.equal(p.values.item_count, '3');

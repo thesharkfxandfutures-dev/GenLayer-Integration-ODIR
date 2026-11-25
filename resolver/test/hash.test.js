@@ -85,12 +85,24 @@ test('every other part of the document is hashed: blanks, labels, defaults, juri
   variants.push(run({ jurisdiction: 'NI' }));
   variants.push(run({ consumer: true }));
   variants.push(run({ title: 'A different title' }));
-  const filled1 = run({ mode: 'agreement', values: { fee: '£100' } }).terms_hash;
-  const filled2 = run({ mode: 'agreement', values: { fee: '£101' } }).terms_hash;
+  const filled1 = run({ mode: 'agreement', values: { fee: '£100' }, salt: 'a'.repeat(64) }).terms_hash;
+  const filled2 = run({ mode: 'agreement', values: { fee: '£101' }, salt: 'a'.repeat(64) }).terms_hash;
+  const salted = run({ mode: 'agreement', values: { fee: '£100' }, salt: 'b'.repeat(64) }).terms_hash;
+  assert.notEqual(salted, filled1, 'the salt is hashed');
   for (const v of variants) assert.notEqual(v.terms_hash, ref);
   assert.equal(new Set(variants.map((v) => v.terms_hash)).size, variants.length);
   assert.notEqual(filled1, filled2);
   assert.notEqual(filled1, ref);
+});
+
+test('the overrides hash covers the overrides themselves', () => {
+  const a = run({ overrides: [{ id: 'o.a', category: 'pay', text: 'Cash on the day.' }] }).sources.overrides.sha256;
+  const b = run({ overrides: [{ id: 'o.a', category: 'pay', text: 'Card on the day.' }] }).sources.overrides.sha256;
+  const c = run({ overrides: [{ category: 'pay', text: 'Cash on the day.', id: 'o.a' }] }).sources.overrides.sha256;
+  assert.match(a, /^sha256:[0-9a-f]{64}$/);
+  assert.notEqual(a, b);
+  assert.equal(a, c, 'key order inside an override does not matter');
+  assert.equal(run().sources.overrides.sha256, null);
 });
 
 test('templateHash leaves out only style blocks, not a field or clause that happens to be named like one', () => {

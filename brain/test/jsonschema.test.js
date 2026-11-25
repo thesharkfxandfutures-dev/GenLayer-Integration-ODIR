@@ -6,6 +6,9 @@ test('a schema keyword the validator does not enforce is refused, wherever it si
   assert.throws(() => assertSupported({ type: 'object', properties: { a: { type: 'string', format: 'email' } } }), /format/);
   assert.throws(() => assertSupported({ $defs: { x: { oneOf: [] } } }), /oneOf/);
   assert.throws(() => assertSupported({ items: { anyOf: [] } }), /anyOf/);
+  assert.throws(() => assertSupported({ type: 'object', additionalProperties: { type: 'string' } }), /additionalProperties must be true or false/);
+  assert.throws(() => assertSupported({ $defs: { x: { additionalProperties: {} } } }), /additionalProperties must be true or false/);
+  assert.throws(() => validate({ type: 'object', additionalProperties: { type: 'string' } }, { a: 1 }), /additionalProperties must be true or false/);
   assert.throws(() => validate({ if: {} }, 1), /if/);
 });
 

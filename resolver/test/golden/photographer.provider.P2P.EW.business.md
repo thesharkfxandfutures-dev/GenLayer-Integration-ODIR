@@ -5,14 +5,14 @@
 - Base: P2P · Law: England and Wales · Business engager · Mode: template
 - Engager: the Client, person
 - Provider: the Photographer (Photographer), person
-- Base P2P v1 `sha256:0403ad2a66d533b1d45dab47fea3a5a460586168890c43d038cacf6a7abca41a`
+- Base P2P v1 `sha256:66788a4a1953c3248a12f56ef6bfbf5f62fe1c884ab341623ca77f3e2d85746d`
 - provider module photographer v1 `sha256:28c15920d4687409c98e3444926d8826d56f328ee23889323748157ce746ed2e`
-- Terms hash: `sha256:ddee2635841fe29bdcc760f66bc167759603da1d6f76a8b28d332286e3b03fb0`
+- Terms hash: `sha256:ddc4e50560ebbcd248c5710a94e9962f65008020977a1bcf012f2c68b248e237`
 
 ## Cover
 
 - This agreement is between the Client, who books and pays, and the Photographer, who does the work. Both are individuals. _[parties_authority, locked]_
-- The Client books for the purposes of their trade, business or profession, not as a consumer. _[parties_authority]_
+- The Client books for the purposes of their trade, business or profession, not as a consumer. _[parties_authority, locked]_
 - The Photographer confirms that the portfolio on their SnapLink profile is their own work. _[parties_authority, provider module]_
 
 ## 1. Role and duties
@@ -38,7 +38,7 @@
 ## 3. Pay
 
 3.1 The Client will pay the Photographer {{fee}} ({{rate_basis}}). _[pay]_
-3.2 A deposit of {{deposit}} is due when both parties have signed. The balance is due within {{payment_days}} days of the work being completed. _[pay]_
+3.2 A deposit of {{deposit}} (£0 means none) is due when both parties have signed. The balance is due within {{payment_days}} days of the work being completed. _[pay]_
 3.3 The Photographer is {{vat_status}}. _[pay]_
 3.4 Where the Photographer is registered for VAT, VAT is added to the fee at the rate in force when it is invoiced. _[pay]_
 3.5 The fee covers the shoot, the editing and delivery of the agreed number of images, and the licence in this agreement. _[pay, provider module]_
@@ -93,7 +93,7 @@
 - `{{finish_time}}` Finish time (time, time_hours)
 - `{{fee}}` Fee (money, pay)
 - `{{rate_basis}}` Rate basis (hourly, day or fixed fee) (text, pay) — default: a fixed fee
-- `{{deposit}}` Deposit (money, pay) — default: no deposit
+- `{{deposit}}` Deposit (money, pay) — default: £0
 - `{{payment_days}}` Days to pay the balance (number, pay) — default: 14
 - `{{vat_status}}` Provider’s VAT status and number (text, pay) — default: not registered for VAT
 - `{{notice_hours}}` Cancellation notice (hours) (number, cancellation_no_show) — default: 48

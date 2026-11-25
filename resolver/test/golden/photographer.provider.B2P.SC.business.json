@@ -7,6 +7,7 @@
   "jurisdiction": "SC",
   "jurisdiction_name": "Scotland",
   "consumer": false,
+  "salt": null,
   "roles": {
     "engager": null,
     "provider": "photographer"
@@ -31,7 +32,7 @@
     "base": {
       "key": "B2P",
       "version": 1,
-      "sha256": "sha256:9ff44a41bf7018b16aff9fcee7e8b0669810d88fa7ef65926228089c74d87ea5"
+      "sha256": "sha256:614bbe598ddcad1eae00a4e5b0963e99b8b36c2e6f815585667f268ec401673f"
     },
     "engager_module": null,
     "provider_module": {
@@ -74,7 +75,7 @@
           "text": "The Photographer works as an independent contractor in business on their own account, not as an employee or worker of the Client.",
           "source": "base",
           "replaces": null,
-          "locked": false,
+          "locked": true,
           "checkable": false
         },
         {
@@ -242,7 +243,7 @@
         {
           "id": "b2p.pay.2",
           "category": "pay",
-          "text": "A deposit of {{deposit}} is due when both parties have signed. The balance is due within {{payment_days}} days of the work being completed.",
+          "text": "A deposit of {{deposit}} (£0 means none) is due when both parties have signed. The balance is due within {{payment_days}} days of the work being completed.",
           "source": "base",
           "replaces": null,
           "locked": false,
@@ -698,7 +699,7 @@
       "label": "Deposit",
       "category": "pay",
       "type": "money",
-      "default": "no deposit",
+      "default": "£0",
       "value": null,
       "source": "base"
     },
@@ -835,5 +836,5 @@
     "heading_font": "serif",
     "seal_colour": "red"
   },
-  "terms_hash": "sha256:4b42e073c6c98b4ec3b55ada546fe578d00ab233e58e2a77074df9f1bd221ba3"
+  "terms_hash": "sha256:f6401d6464432124d7f9285453c659cf214c1ed7b507b40335a2f8d520a5bbc7"
 }

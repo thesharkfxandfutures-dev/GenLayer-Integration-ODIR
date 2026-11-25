@@ -60,7 +60,7 @@ function tempRepo() {
   return { dir, git, commit };
 }
 
-test('real git history: the range is read per commit, renames count on both sides, merges are listed not checked', () => {
+test('real git history: the range is read per commit, renames count on both sides, a clean merge passes', () => {
   const { dir, git, commit } = tempRepo();
   const base = commit({ 'README.md': 'x\n' }, 'root');
   commit({ 'templates/roles/photographer/module.json': '{}\n' }, 'role ok');
@@ -74,15 +74,43 @@ test('real git history: the range is read per commit, renames count on both side
   git('mv', 'templates/roles/photographer/module.json', 'templates/bases/p2p.json');
   git('commit', '-q', '-m', 'rename');
   const { commits, merges } = commitsInRange(dir, base, 'HEAD');
-  assert.equal(commits.length, 4);
+  assert.equal(commits.length, 5);
   assert.equal(merges.length, 1);
+  assert.deepEqual(commits.find((c) => c.merge).files, [], 'a clean merge changes nothing itself');
   const p = checkRoleCommits(commits);
   assert.equal(p.length, 1);
   assert.match(p[0], /also touches templates\/bases\/p2p\.json/);
   const cli = spawnSync('node', [BIN, '--base', base, '--repo', dir], { encoding: 'utf8' });
   assert.equal(cli.status, 1);
-  assert.match(cli.stdout, /4 commit\(s\) checked .*1 merge commit\(s\) not checked/);
+  assert.match(cli.stdout, /5 commit\(s\) checked .*\(1 merge commit\(s\), checked on what the merge itself changed\)/);
   assert.match(cli.stdout, /FAIL .*also touches templates\/bases\/p2p\.json/);
+});
+
+test('real git history: a merge that itself edits a role folder and code fails', () => {
+  const { dir, git, commit } = tempRepo();
+  const base = commit({ 'README.md': 'x\n', 'resolver/hash.js': 'a\n' }, 'root');
+  git('checkout', '-q', '-b', 'side');
+  commit({ 'side.txt': 's\n' }, 'side');
+  git('checkout', '-q', 'main');
+  commit({ 'other.txt': 'o\n' }, 'main work');
+  git('merge', '-q', '--no-ff', '--no-commit', 'side');
+  fs.mkdirSync(path.join(dir, 'templates', 'roles', 'photographer'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'templates', 'roles', 'photographer', 'module.json'), '{}\n');
+  fs.writeFileSync(path.join(dir, 'resolver', 'hash.js'), 'b\n');
+  git('add', '-A');
+  git('commit', '-q', '-m', 'evil merge');
+  const p = checkRoleCommits(commitsInRange(dir, base, 'HEAD').commits);
+  assert.equal(p.length, 1, p.join('\n'));
+  assert.match(p[0], /also touches resolver\/hash\.js/);
+});
+
+test('real git history: a non-ASCII role folder is still a role folder', () => {
+  const { dir, commit } = tempRepo();
+  const base = commit({ 'README.md': 'x\n' }, 'root');
+  commit({ 'templates/roles/caf\u00e9/module.json': '{}\n', 'resolver/src/hash.js': 'x\n' }, 'non-ascii');
+  const p = checkRoleCommits(commitsInRange(dir, base, 'HEAD').commits);
+  assert.equal(p.length, 1, p.join('\n'));
+  assert.match(p[0], /also touches resolver\/src\/hash\.js/);
 });
 
 test('the CLI passes a clean range and refuses bad arguments', () => {

@@ -23,8 +23,8 @@ const photographer = modules.get('photographer');
 
 const docFor = (c, extra = {}) => resolve({
   base: bases.get(c.base),
-  engager: c.slot === 'engager' ? modules.get(c.role) : null,
-  provider: c.slot === 'provider' ? modules.get(c.role) : null,
+  engager: c.engager ? modules.get(c.engager) : null,
+  provider: c.provider ? modules.get(c.provider) : null,
   jurisdiction: c.jurisdiction,
   consumer: c.consumer,
   ...extra,
@@ -52,11 +52,13 @@ const SAMPLE_VALUES = Object.freeze({
 });
 
 const PILOT = [
-  { role: 'photographer', slot: 'provider', base: 'P2P', jurisdiction: 'EW', consumer: false },
-  { role: 'photographer', slot: 'provider', base: 'P2P', jurisdiction: 'EW', consumer: true },
-  { role: 'photographer', slot: 'provider', base: 'B2P', jurisdiction: 'SC', consumer: false },
-  { role: 'photographer', slot: 'engager', base: 'P2P', jurisdiction: 'NI', consumer: false },
+  { engager: null, provider: 'photographer', base: 'P2P', jurisdiction: 'EW', consumer: false },
+  { engager: null, provider: 'photographer', base: 'P2P', jurisdiction: 'EW', consumer: true },
+  { engager: null, provider: 'photographer', base: 'B2P', jurisdiction: 'SC', consumer: false },
+  { engager: 'photographer', provider: null, base: 'P2P', jurisdiction: 'NI', consumer: false },
 ];
+// A synthetic, fixed salt for the golden agreement (a real one is 32 random bytes from the server).
+const SAMPLE_SALT = '5a17'.repeat(16);
 
 test('the committed templates load with no problems', () => {
   assert.deepEqual(problems, []);
@@ -83,7 +85,8 @@ test('every role x base pair that exists renders (render-all exits 0)', () => {
   const r = spawnSync('node', [path.join(HERE, '..', 'bin', 'render-all.mjs'), '--root', ROOT, '--json'], { encoding: 'utf8' });
   assert.equal(r.status, 0, r.stdout);
   const j = JSON.parse(r.stdout);
-  assert.equal(j.rendered.length, 21);
+  assert.equal(j.rendered.length, 24);
+  assert.ok(j.rendered.some((r) => r.name === 'photographer+photographer.pair.P2P.EW.business'), 'a photographer booking a photographer');
   assert.deepEqual(j.skipped, []);
   assert.deepEqual(j.failures, []);
 });
@@ -104,8 +107,9 @@ test('golden: the full resolved text of the four pilot documents (JSON and Markd
 });
 
 test('golden: a filled B2P agreement (agreement mode, synthetic values)', () => {
-  const c = { role: 'photographer', slot: 'provider', base: 'B2P', jurisdiction: 'EW', consumer: false };
-  const doc = docFor(c, { mode: 'agreement', values: SAMPLE_VALUES, title: 'Product photography for a spring campaign' });
+  const c = { engager: null, provider: 'photographer', base: 'B2P', jurisdiction: 'EW', consumer: false };
+  const doc = docFor(c, { mode: 'agreement', values: SAMPLE_VALUES, title: 'Product photography for a spring campaign', salt: SAMPLE_SALT });
+  assert.equal(doc.salt, SAMPLE_SALT);
   for (const cl of allClauses(doc)) assert.doesNotMatch(cl.text, /\{\{|\[\[/);
   golden('agreement.photographer.provider.B2P.EW.json', pretty(doc));
 });

@@ -28,9 +28,11 @@ test('combinations: each base alone, each role x base x slot it takes, every jur
   assert.deepEqual(t.problems, []);
   const { combos, skipped } = combinations(t);
   const names = combos.map(comboName);
-  assert.equal(names.length, 6 + 3 + 3 + 6 + 3); // P2P alone, B2P alone, engager P2P, provider P2P (x consumer), provider B2P
+  assert.equal(names.length, 6 + 3 + 3 + 6 + 3 + 3); // P2P alone, B2P alone, engager P2P, provider P2P (x consumer), provider B2P, the pair under P2P
   assert.ok(names.includes('tester.provider.P2P.EW.consumer'));
+  assert.ok(names.includes('tester+tester.pair.P2P.SC.business'));
   assert.ok(!names.includes('tester.engager.P2P.EW.consumer'));
+  assert.ok(!names.some((n) => n.includes('.pair.') && n.endsWith('consumer')));
   assert.ok(!names.some((n) => n.includes('B2P') && n.endsWith('consumer')));
   assert.equal(new Set(names).size, names.length);
   assert.deepEqual(skipped, []);
@@ -43,12 +45,12 @@ test('render-all passes a good tree and writes JSON and Markdown with --out', ()
   assert.equal(r.status, 0, r.stdout);
   assert.match(r.stdout, /templates: 1 base\(s\), 1 role module\(s\)/);
   assert.match(r.stdout, /skip tester\.provider\.B2P: base not present/);
-  assert.match(r.stdout, /15 rendered, 1 skipped, 0 failed/);
+  assert.match(r.stdout, /18 rendered, 1 skipped, 0 failed/);
   assert.ok(fs.existsSync(path.join(out, 'tester.provider.P2P.SC.consumer.json')));
   assert.ok(fs.existsSync(path.join(out, 'tester.provider.P2P.SC.consumer.md')));
   const j = JSON.parse(cli(root, '--json').stdout);
   assert.equal(j.ok, true);
-  assert.equal(j.rendered.length, 15);
+  assert.equal(j.rendered.length, 18);
 });
 
 test('render-all fails on a stale module, a misnamed file or folder, a stray file, an invalid template, or no bases', () => {

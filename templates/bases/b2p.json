@@ -33,7 +33,8 @@
     {
       "id": "b2p.parties.status",
       "category": "parties_authority",
-      "text": "[[Provider]] works as an independent contractor in business on their own account, not as an employee or worker of [[engager]]."
+      "text": "[[Provider]] works as an independent contractor in business on their own account, not as an employee or worker of [[engager]].",
+      "locked": true
     },
     {
       "id": "b2p.accept.age",
@@ -87,7 +88,7 @@
     {
       "id": "b2p.pay.2",
       "category": "pay",
-      "text": "A deposit of {{deposit}} is due when both parties have signed. The balance is due within {{payment_days}} days of the work being completed."
+      "text": "A deposit of {{deposit}} (£0 means none) is due when both parties have signed. The balance is due within {{payment_days}} days of the work being completed."
     },
     {
       "id": "b2p.pay.vat",
@@ -258,7 +259,7 @@
       "label": "Deposit",
       "category": "pay",
       "type": "money",
-      "default": "no deposit"
+      "default": "£0"
     },
     {
       "key": "payment_days",

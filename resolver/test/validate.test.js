@@ -75,6 +75,18 @@ test('base: no replaces, no checkable, no base condition, no foreign blanks; acc
   const k = makeBase();
   k.fields[1].default = '{{fee}}';
   has(baseProblems(k), /default cannot hold a blank/);
+  const l = makeBase();
+  l.fields[1].default = 'fourteen';
+  has(baseProblems(l), /default: must be a whole number/);
+  const m = makeBase();
+  m.clauses[0].text = 'Hidden\u200bjoin.';
+  has(baseProblems(m), /invisible or direction-changing/);
+  const n = makeBase();
+  n.title = 'Cafe\u0301 base';
+  has(baseProblems(n), /\$\.title: not in Unicode NFC form/);
+  const o = makeBase();
+  o.fields[0].label = 'Fee\u202e';
+  has(baseProblems(o), /label: holds an invisible/);
 });
 
 test('module: prefixes, coverage of all 13 categories per slot, checkable counts', () => {

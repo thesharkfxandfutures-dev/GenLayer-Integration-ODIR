@@ -28,6 +28,7 @@
       "id": "p2p.parties.consumer",
       "category": "parties_authority",
       "text": "[[Engager]] books as a consumer, for their own private purposes and not for a business.",
+      "locked": true,
       "when": {
         "consumer": true
       }
@@ -36,6 +37,7 @@
       "id": "p2p.parties.business",
       "category": "parties_authority",
       "text": "[[Engager]] books for the purposes of their trade, business or profession, not as a consumer.",
+      "locked": true,
       "when": {
         "consumer": false
       }
@@ -92,7 +94,7 @@
     {
       "id": "p2p.pay.2",
       "category": "pay",
-      "text": "A deposit of {{deposit}} is due when both parties have signed. The balance is due within {{payment_days}} days of the work being completed."
+      "text": "A deposit of {{deposit}} (£0 means none) is due when both parties have signed. The balance is due within {{payment_days}} days of the work being completed."
     },
     {
       "id": "p2p.pay.vat",
@@ -314,7 +316,7 @@
       "label": "Deposit",
       "category": "pay",
       "type": "money",
-      "default": "no deposit"
+      "default": "£0"
     },
     {
       "key": "payment_days",
