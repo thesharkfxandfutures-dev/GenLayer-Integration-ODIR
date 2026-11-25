@@ -189,3 +189,21 @@ VERDICT: DRAFTED — lint 0 errors (1 false-positive warning), 27 direct-mode te
 caught, Studionet reachable and the deploy simulation constructs (`00`); schema NOT_RUN (endpoint). The PR
 stays a draft until the owner deploys and the post-deploy Studionet check (transaction report and a view
 read) passes.
+
+## Independent verification — 25 Nov 2026 (same scheduled run, separate verifier agent)
+
+A verifier agent that did not build this contract checked out `70037747a2c48aa1485d33739a91eae8d21a02fe` and judged it
+from the code, the tests and page row 9 (plus the award rules) before reading this record. **Verdict: PASS.**
+
+| Check | Attempt | Result | Grade | Evidence |
+|---|---|---|---|---|
+| Hashes | 1 | contract `a8354c84…71ef5`, tests `5bb19ee8…33e74` match this record | OBSERVED | unchanged after mutations |
+| genskill lint (full source) | 1 | 0 errors, 1 warning (`L346 python-container` on the `list[str]` calldata parameter: false positive, storage is Address/TreeMap/DynArray) | OBSERVED | source pasted by hand |
+| pytest | 1 | `27 passed in 0.81s` | OBSERVED | verifier's own clone |
+| Boundary | 1 | exactly the count → reached; one short → shortfall 1 | OBSERVED | Foundation 24/25, Zenith 9999/10000, added level 99/100 |
+| Row + award-rule coverage, exact texts | 1 | every item has a full-text test | OBSERVED | UNKNOWN_MILESTONE, DUPLICATE_WORK_HASH (case/whitespace variants), ALREADY_CONFIRMED, FORBIDDEN_SIGNAL (10 cases, five families), BAD_ROLE_KEY; 16 ERR constants AST-compared |
+| Mutations caught | 1 | 10 of 10 | OBSERVED | `>=`→`>`, each refusal removed, every level counted, role not compared, shortfall off by one, verdicts flipped, role-key check removed; reverted, tree clean |
+
+Verifier notes (not defects): forbidden-word matching works on letter runs, so joined forms (`PAIDPLAN`, `likeCount`,
+`BoostLevel`) pass but can never count; "following" is not listed; a full Zenith claim is ~1 MB of calldata; reuse of a
+hash across claims is not detected on chain. Not reproduced by the verifier: the Studionet checks (outside its brief).

@@ -60,7 +60,7 @@ Two parties claim one photograph; decide whose claim the public evidence support
 - **Must refuse:** a third claimant; a statement edited after both are in; a decision request
   before both statements exist.
 
-## 9. verified_work_milestone — `drafted (PR pending)`
+## 9. verified_work_milestone — `drafted (PR #11)`
 
 Award contract (owner's page row 9): Verified Work trophies, Foundation (25) to Zenith (10,000).
 Decide whether every counted piece of work is attested or SnapLink-verified, done in the named role
