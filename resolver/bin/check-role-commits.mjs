@@ -18,6 +18,7 @@ try { range = commitsInRange(repo, base, head); } catch (e) {
   process.exit(2);
 }
 const problems = checkRoleCommits(range.commits);
-process.stdout.write(`${range.commits.length} commit(s) checked in ${base.slice(0, 10)}..${String(head).slice(0, 10)}${range.merges.length ? `, ${range.merges.length} merge commit(s) not checked` : ''}\n`);
+const short = (r) => (/^[0-9a-f]{40}$/.test(r) ? r.slice(0, 10) : r);
+process.stdout.write(`${range.commits.length} commit(s) checked in ${short(base)}..${short(String(head))}${range.merges.length ? `, ${range.merges.length} merge commit(s) not checked` : ''}\n`);
 for (const p of problems) process.stdout.write(`FAIL ${p}\n`);
 process.exit(problems.length ? 1 : 0);
