@@ -1,8 +1,8 @@
-# CI scaffold for the ODIR Brain (slice A2). Runs the Brain's and the adapter's tests and the
-# schema gate on every push and pull request. Read-only token, no secrets, no deploys.
+# CI for the ODIR Brain (slice A2) and the role-contract templates (slice A3). Runs on every push
+# and pull request. Read-only token, no secrets, no deploys.
 # Node 22: `node --test "test/*.test.js"` needs glob support (Node 21+); Node 20 finds no files.
-# Later slices add: template rendering for every role x base pair (A3), and the check that a role
-# commit touches only its own folder.
+# A3 adds: the template tests, the check-and-render gate for every role x base pair that exists,
+# and the check that each role commit touches only its own folder.
 name: brain-ci
 
 on:
@@ -20,6 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -31,3 +32,19 @@ jobs:
       - name: Adapter tests
         working-directory: adapter
         run: npm test
+      - name: Template tests
+        working-directory: resolver
+        run: npm test
+      - name: Templates — check and render every role x base pair
+        run: node resolver/bin/render-all.mjs
+      - name: Role commits touch only their own folder
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ -n "$PR_BASE" ]; then
+            BASE="$PR_BASE"; HEAD="$PR_HEAD"
+          else
+            BASE="$(git merge-base origin/main HEAD)"; HEAD="$(git rev-parse HEAD)"
+          fi
+          node resolver/bin/check-role-commits.mjs --base "$BASE" --head "$HEAD"

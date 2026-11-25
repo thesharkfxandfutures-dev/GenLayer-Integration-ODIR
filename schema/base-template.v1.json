@@ -1,0 +1,335 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/thesharkfxandfutures-dev/genlayer-integration-odir/schema/base-template.v1.json",
+  "title": "odir.base-template.v1 — one relationship base (P2P, P2B, B2P, B2B, STAFF)",
+  "description": "A base holds the clauses every role shares for one engager → provider relationship, covering all 13 clause categories. Draft wording for review; not legal advice. Hashes leave out every style block.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "key",
+    "version",
+    "title",
+    "engager_kind",
+    "provider_kind",
+    "consumer_variant",
+    "jurisdictions",
+    "notice",
+    "party_labels",
+    "clauses",
+    "fields"
+  ],
+  "properties": {
+    "schema": {
+      "const": "odir.base-template.v1"
+    },
+    "key": {
+      "enum": [
+        "P2P",
+        "P2B",
+        "B2P",
+        "B2B",
+        "STAFF"
+      ]
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "pattern": "^[^\\u0000-\\u001F\\u007F]*$"
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 400,
+      "pattern": "^[^\\u0000-\\u001F\\u007F]*$"
+    },
+    "engager_kind": {
+      "enum": [
+        "person",
+        "organisation"
+      ]
+    },
+    "provider_kind": {
+      "enum": [
+        "person",
+        "organisation"
+      ]
+    },
+    "consumer_variant": {
+      "type": "boolean",
+      "description": "true: the base has a consumer variant (a person booking for themselves, Consumer Rights Act 2015, Consumer Contracts Regulations 2013)."
+    },
+    "jurisdictions": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "EW",
+          "SC",
+          "NI"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "notice": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300,
+      "pattern": "^[^\\u0000-\\u001F\\u007F]*$"
+    },
+    "party_labels": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engager",
+        "provider"
+      ],
+      "properties": {
+        "engager": {
+          "type": "string",
+          "pattern": "^the [A-Z][A-Za-z ]{1,40}$"
+        },
+        "provider": {
+          "type": "string",
+          "pattern": "^the [A-Z][A-Za-z ]{1,40}$"
+        }
+      }
+    },
+    "clauses": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/clause"
+      },
+      "minItems": 13,
+      "maxItems": 120
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/field"
+      },
+      "maxItems": 80
+    },
+    "style": {
+      "$ref": "#/$defs/document_style"
+    }
+  },
+  "$defs": {
+    "when": {
+      "description": "The clause applies only in variants that match every condition given. No condition: always.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "consumer": {
+          "type": "boolean",
+          "description": "true: only when the engager is a consumer (a person booking for themselves); false: only when not."
+        },
+        "bases": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "P2P",
+              "P2B",
+              "B2P",
+              "B2B",
+              "STAFF"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "jurisdictions": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "EW",
+              "SC",
+              "NI"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "clause_style": {
+      "description": "Presentation only. Never part of any hash.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "emphasis": {
+          "enum": [
+            "none",
+            "strong",
+            "boxed"
+          ]
+        },
+        "keep_with_next": {
+          "type": "boolean"
+        }
+      }
+    },
+    "document_style": {
+      "description": "Presentation only. Never part of any hash.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "paper": {
+          "enum": [
+            "waxed-parchment",
+            "plain-parchment"
+          ]
+        },
+        "ink": {
+          "enum": [
+            "sepia",
+            "iron-gall",
+            "navy"
+          ]
+        },
+        "heading_font": {
+          "enum": [
+            "serif",
+            "small-caps"
+          ]
+        },
+        "seal_colour": {
+          "enum": [
+            "red",
+            "green",
+            "navy"
+          ]
+        }
+      }
+    },
+    "clause": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "category",
+        "text"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+          "maxLength": 80,
+          "description": "Base clauses start with the base key in lower case, module clauses with <role_key>.<slot>."
+        },
+        "category": {
+          "enum": [
+            "parties_authority",
+            "role_duties",
+            "place",
+            "time_hours",
+            "pay",
+            "expenses_equipment",
+            "usage_licence",
+            "copyright_moral_rights",
+            "safety_licences",
+            "cancellation_no_show",
+            "confidentiality_consent",
+            "proof_of_completion",
+            "disputes_record"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1200,
+          "pattern": "^[^\\u0000-\\u001F\\u007F]*$",
+          "description": "Plain text. {{field_key}} is a blank the parties fill; [[engager]] [[Engager]] [[provider]] [[Provider]] [[jurisdiction]] [[courts]] are filled by the resolver."
+        },
+        "section": {
+          "const": "acceptance",
+          "description": "Draw this clause under Acceptance and seal instead of its category section (parties_authority and disputes_record only)."
+        },
+        "locked": {
+          "type": "boolean",
+          "description": "No later layer may replace this clause."
+        },
+        "checkable": {
+          "type": "boolean",
+          "description": "A checkable duty statement (module clauses only)."
+        },
+        "replaces": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+          "maxLength": 80,
+          "description": "Replace this earlier clause in place (later layers only). The replacement is marked on the parchment."
+        },
+        "when": {
+          "$ref": "#/$defs/when"
+        },
+        "style": {
+          "$ref": "#/$defs/clause_style"
+        }
+      }
+    },
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "label",
+        "category",
+        "type"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[^\\u0000-\\u001F\\u007F]*$"
+        },
+        "category": {
+          "enum": [
+            "parties_authority",
+            "role_duties",
+            "place",
+            "time_hours",
+            "pay",
+            "expenses_equipment",
+            "usage_licence",
+            "copyright_moral_rights",
+            "safety_licences",
+            "cancellation_no_show",
+            "confidentiality_consent",
+            "proof_of_completion",
+            "disputes_record"
+          ]
+        },
+        "type": {
+          "enum": [
+            "text",
+            "date",
+            "time",
+            "money",
+            "number",
+            "duration"
+          ]
+        },
+        "default": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[^\\u0000-\\u001F\\u007F]*$",
+          "description": "Used when the parties give no value. A field without a default must be filled."
+        },
+        "refines": {
+          "type": "boolean",
+          "description": "This layer refines a field an earlier layer defined (label or default only)."
+        }
+      }
+    }
+  }
+}

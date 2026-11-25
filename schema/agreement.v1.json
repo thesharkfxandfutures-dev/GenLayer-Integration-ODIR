@@ -1,0 +1,517 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/thesharkfxandfutures-dev/genlayer-integration-odir/schema/agreement.v1.json",
+  "title": "odir.agreement.v1 — one resolved document (what the parchment shows and the parties sign)",
+  "description": "The resolver output: base < engager module < provider module < the parties' overrides, every replacement marked, conditions applied and (in agreement mode) blanks filled. terms_hash is sha256 of the canonical encoding (adapter/src/canon.js) of everything here except style blocks and terms_hash itself.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "mode",
+    "title",
+    "notice",
+    "base",
+    "jurisdiction",
+    "jurisdiction_name",
+    "consumer",
+    "roles",
+    "parties",
+    "sources",
+    "sections",
+    "fields",
+    "terms_hash"
+  ],
+  "properties": {
+    "schema": {
+      "const": "odir.agreement.v1"
+    },
+    "mode": {
+      "enum": [
+        "template",
+        "agreement"
+      ],
+      "description": "template: blanks kept as {{field_key}}; agreement: every blank filled."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[^\\u0000-\\u001F\\u007F]*$"
+    },
+    "notice": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300,
+      "pattern": "^[^\\u0000-\\u001F\\u007F]*$"
+    },
+    "base": {
+      "enum": [
+        "P2P",
+        "P2B",
+        "B2P",
+        "B2B",
+        "STAFF"
+      ]
+    },
+    "jurisdiction": {
+      "enum": [
+        "EW",
+        "SC",
+        "NI"
+      ]
+    },
+    "jurisdiction_name": {
+      "enum": [
+        "England and Wales",
+        "Scotland",
+        "Northern Ireland"
+      ]
+    },
+    "consumer": {
+      "type": "boolean"
+    },
+    "roles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engager",
+        "provider"
+      ],
+      "properties": {
+        "engager": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-z][a-z0-9_]{1,40}$"
+        },
+        "provider": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-z][a-z0-9_]{1,40}$"
+        }
+      }
+    },
+    "parties": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/party"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base",
+        "engager_module",
+        "provider_module",
+        "overrides"
+      ],
+      "properties": {
+        "base": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "key",
+            "version",
+            "sha256"
+          ],
+          "properties": {
+            "key": {
+              "enum": [
+                "P2P",
+                "P2B",
+                "B2P",
+                "B2B",
+                "STAFF"
+              ]
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          }
+        },
+        "engager_module": {
+          "$ref": "#/$defs/module_ref"
+        },
+        "provider_module": {
+          "$ref": "#/$defs/module_ref"
+        },
+        "overrides": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "count",
+            "sha256"
+          ],
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "sha256": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          }
+        }
+      }
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/section"
+      },
+      "minItems": 7,
+      "maxItems": 7
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/resolved_field"
+      },
+      "maxItems": 200
+    },
+    "style": {
+      "$ref": "#/$defs/document_style"
+    },
+    "terms_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "$defs": {
+    "clause_style": {
+      "description": "Presentation only. Never part of any hash.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "emphasis": {
+          "enum": [
+            "none",
+            "strong",
+            "boxed"
+          ]
+        },
+        "keep_with_next": {
+          "type": "boolean"
+        }
+      }
+    },
+    "document_style": {
+      "description": "Presentation only. Never part of any hash.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "paper": {
+          "enum": [
+            "waxed-parchment",
+            "plain-parchment"
+          ]
+        },
+        "ink": {
+          "enum": [
+            "sepia",
+            "iron-gall",
+            "navy"
+          ]
+        },
+        "heading_font": {
+          "enum": [
+            "serif",
+            "small-caps"
+          ]
+        },
+        "seal_colour": {
+          "enum": [
+            "red",
+            "green",
+            "navy"
+          ]
+        }
+      }
+    },
+    "party": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "slot",
+        "label",
+        "role",
+        "role_label",
+        "kind"
+      ],
+      "properties": {
+        "slot": {
+          "enum": [
+            "engager",
+            "provider"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "pattern": "^the [A-Z][A-Za-z ]{1,40}$"
+        },
+        "role": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-z][a-z0-9_]{1,40}$"
+        },
+        "role_label": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 60,
+          "pattern": "^[^\\u0000-\\u001F\\u007F]*$"
+        },
+        "kind": {
+          "enum": [
+            "person",
+            "organisation"
+          ]
+        }
+      }
+    },
+    "module_ref": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "role_key",
+        "version",
+        "sha256",
+        "stale"
+      ],
+      "properties": {
+        "role_key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{1,40}$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "stale": {
+          "type": "boolean"
+        }
+      }
+    },
+    "section": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "title",
+        "clauses"
+      ],
+      "properties": {
+        "key": {
+          "enum": [
+            "cover",
+            "duties",
+            "place_time",
+            "pay",
+            "terms",
+            "proof_disputes",
+            "acceptance"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "clauses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/resolved_clause"
+          },
+          "maxItems": 300
+        }
+      }
+    },
+    "resolved_clause": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "category",
+        "text",
+        "source",
+        "replaces",
+        "locked",
+        "checkable"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+          "maxLength": 80
+        },
+        "category": {
+          "enum": [
+            "parties_authority",
+            "role_duties",
+            "place",
+            "time_hours",
+            "pay",
+            "expenses_equipment",
+            "usage_licence",
+            "copyright_moral_rights",
+            "safety_licences",
+            "cancellation_no_show",
+            "confidentiality_consent",
+            "proof_of_completion",
+            "disputes_record"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000,
+          "pattern": "^[^\\u0000-\\u001F\\u007F]*$"
+        },
+        "source": {
+          "enum": [
+            "base",
+            "engager_module",
+            "provider_module",
+            "override"
+          ]
+        },
+        "replaces": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "source"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+              "maxLength": 80
+            },
+            "source": {
+              "enum": [
+                "base",
+                "engager_module",
+                "provider_module",
+                "override"
+              ]
+            }
+          }
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "checkable": {
+          "type": "boolean"
+        },
+        "style": {
+          "$ref": "#/$defs/clause_style"
+        }
+      }
+    },
+    "resolved_field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "label",
+        "category",
+        "type",
+        "default",
+        "value",
+        "source"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[^\\u0000-\\u001F\\u007F]*$"
+        },
+        "category": {
+          "enum": [
+            "parties_authority",
+            "role_duties",
+            "place",
+            "time_hours",
+            "pay",
+            "expenses_equipment",
+            "usage_licence",
+            "copyright_moral_rights",
+            "safety_licences",
+            "cancellation_no_show",
+            "confidentiality_consent",
+            "proof_of_completion",
+            "disputes_record"
+          ]
+        },
+        "type": {
+          "enum": [
+            "text",
+            "date",
+            "time",
+            "money",
+            "number",
+            "duration"
+          ]
+        },
+        "default": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 200,
+          "pattern": "^[^\\u0000-\\u001F\\u007F]*$"
+        },
+        "value": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 300,
+          "pattern": "^[^\\u0000-\\u001F\\u007F]*$",
+          "description": "agreement mode only: the value the blank was filled with."
+        },
+        "source": {
+          "enum": [
+            "base",
+            "engager_module",
+            "provider_module"
+          ]
+        }
+      }
+    }
+  }
+}
