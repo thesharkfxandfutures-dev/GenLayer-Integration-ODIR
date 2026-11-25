@@ -102,8 +102,9 @@ Chain selection (`adapter/src/rpc.js selectChain`). The config's `chain_id` pick
 client's chains with that id; the optional `chain_name` (`bradbury`, `testnetBradbury` or the
 client's display name, case and punctuation ignored) and `rpc_url` narrow them further, and
 exactly one must remain. `genlayer-js@1.1.8` defines `testnetAsimov` and `testnetBradbury` both as
-chain 4221, so a testnet config must give `rpc_url` or `chain_name`: a bare 4221 is refused with
-exit 5, never resolved to whichever chain the client lists first. A name and URL that point at
+chain 4221, so a testnet config must give `rpc_url` or `chain_name` (the CLI already requires
+`rpc_url`): a bare 4221 is refused with exit 5, never resolved to whichever chain the client lists
+first. A name and URL that point at
 different chains are refused the same way. `reconcile` still compares `chain_id` and the contract
 address only, so a package cannot yet say which of the two testnets it means.
 

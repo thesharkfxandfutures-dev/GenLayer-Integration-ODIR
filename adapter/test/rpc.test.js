@@ -42,6 +42,17 @@ test('a chain name may be the export key, the key without "testnet", or the clie
     assert.equal(selectChain(shared, { chain_id: 4221, chain_name: name }), bradbury, name);
   }
   assert.equal(selectChain(shared, { chain_id: 4221, chain_name: 'Genlayer Asimov Testnet' }), asimov);
+  // Whole names only: a fragment never picks a chain.
+  for (const fragment of ['brad', 'bury', 'testnet', 'genlayer', 'asim']) {
+    assert.throws(() => selectChain(shared, { chain_id: 4221, chain_name: fragment }), refused(/chain_name/), fragment);
+  }
+});
+
+test('ids compare strictly, URLs ignore any run of trailing slashes, and a chain with no URL cannot contradict one', () => {
+  assert.throws(() => selectChain(shared, { chain_id: '4221', chain_name: 'bradbury' }), refused(/not a chain the pinned client knows/));
+  assert.equal(selectChain(shared, { chain_id: 4221, rpc_url: `${BRADBURY_URL}//` }), bradbury);
+  const bare = { id: 7, name: 'No URL' };
+  assert.equal(selectChain({ bare }, { chain_id: 7, rpc_url: 'https://any.example/rpc' }), bare);
 });
 
 test('a shared chain id with nothing else to choose by is refused, never the first match', () => {
