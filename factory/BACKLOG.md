@@ -50,7 +50,7 @@ Judge whether a late cancellation or no-show reason justifies a trust penalty.
   (`MINOR` / `STANDARD` / `SEVERE`) with the clause relied on.
 - **Must refuse:** a reason submitted after the case is closed; a severity outside the bands.
 
-## 5. photo_claim_adjudication — `drafted (PR pending)`
+## 5. photo_claim_adjudication — `drafted (PR #8)`
 
 Two people claim one photograph: whose claim does the public evidence support?
 (Owner page, main table, row 6.)

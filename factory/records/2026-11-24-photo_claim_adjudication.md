@@ -134,3 +134,24 @@ Read-only checks afterwards: `genlayer receipt <tx hash>`; `genlayer call <addre
 VERDICT: DRAFTED — lint clean, 16 direct-mode tests pass with the model mocked, Studionet reachable
 and the deploy simulation constructs (`00`); schema NOT_RUN. The PR stays a draft until the owner
 deploys and the post-deploy Studionet check (transaction report and a view read) passes.
+
+## Independent verification — 25 Nov 2026 (scheduled factory run)
+
+A separate verifier agent (not the builder) checked out this branch at `22cffed36b96681dbf628d0429e350f9e3d266c5`
+and judged it from the code, the tests and page row 6, without this record. **Verdict: PASS.**
+
+| Check | Attempt | Result | Grade | Evidence |
+|---|---|---|---|---|
+| Contract sha256 | 1 | `4b2ca45f4f98eebcdbf62b362e6091068d05abdc62142d60fad70d834d2e9277` | OBSERVED | unchanged after all mutations were reverted |
+| genskill lint (full source) | 1 | `ok: true`, 0 errors, 0 warnings, 0 info | OBSERVED | source pasted into the tool call; byte identity not machine-checked |
+| pytest (genlayer-test 0.29.2 direct mode, LLM mocked) | 1 | `16 passed in 0.26s` | OBSERVED | re-run in the verifier's own clone (orchestrator smoke run also `16 passed`) |
+| Every answer word and refusal has a test; refusals exact | 1 | yes | OBSERVED | CLAIMANT_A, CLAIMANT_B, UNDECIDED; `THIRD_CLAIMANT`, `STATEMENT_LOCKED`, `BOTH_CLAIMS_REQUIRED` assert the full text |
+| Quoted fact checked against the claims | 1 | yes | OBSERVED (direct mode) | in the leader's parse and in the validator |
+| Mutations caught | 1 | 9 of 9 | OBSERVED | each refusal removed → 1 failed each; validator always agrees → 2; validator compares wording → 2; stored verdict flipped → 2; each verbatim-fact check removed → 1 each; refusal text changed → 1; each reverted, tree clean |
+| Studionet schema (endpoint re-probe) | 1 | `unsupported_contract_rpc` (`studionet-hosted`, upstream `Internal database error (code -32603)`) | NOT_RUN | orchestrator probe with a 15-line contract, 25 Nov ~00:01 UTC; the refusal is per endpoint, so this file was not sent |
+| Studionet reachability | 1 | healthy, chain `0xf22f`, block `0x6b062555` | OBSERVED | orchestrator `genlayer_network_status`, 25 Nov ~00:01 UTC |
+| Deploy-simulation calldata reproducible | 1 | 36,982 hex chars, prefix `0xf94837b94832`, suffix `0600` | OBSERVED | orchestrator re-encoded this file with genlayer-js 0.18.4; matches the length and framing recorded above |
+
+Notes from the verifier (not defects): the doc block sits after `from genlayer import *`, so it is not Python's
+`__doc__` (lint accepts it); the test harness's `expect_revert` matches the message, so the `gl.vm.UserError` class was
+confirmed by reading the source. Not reproduced by the verifier: the Studionet deploy simulation (not in its brief).
