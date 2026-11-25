@@ -1,0 +1,32 @@
+# CI scaffold for the ODIR Brain (slice A2). Runs the Brain's and the adapter's tests and the
+# schema gate on every push and pull request. Read-only token, no secrets, no deploys.
+# Later slices add: template rendering for every role x base pair (A3), and the check that a role
+# commit touches only its own folder.
+name: brain-ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Brain tests
+        working-directory: brain
+        run: npm test
+      - name: Schema gate
+        run: node brain/bin/check-schemas.mjs
+      - name: Adapter tests
+        working-directory: adapter
+        run: npm test

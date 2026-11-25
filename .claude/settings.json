@@ -9,8 +9,20 @@
       "Bash(genlayer keygen:*)",
       "Bash(npx genlayer deploy:*)",
       "Bash(npx genlayer write:*)",
+      "Bash(npx genlayer account:*)",
+      "Bash(npx genlayer keygen:*)",
       "Bash(git push origin main:*)",
-      "Bash(gh pr merge:*)"
+      "Bash(git push origin HEAD:main:*)",
+      "Bash(git push origin HEAD:refs/heads/main:*)",
+      "Bash(git push origin --delete:*)",
+      "Bash(git push origin :brain/lock:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh api -X PUT:*)",
+      "Bash(gh api -XPUT:*)",
+      "Bash(gh api --method PUT:*)",
+      "Bash(gh api --method=PUT:*)",
+      "mcp__github__merge_pull_request",
+      "mcp__github__enable_pr_auto_merge"
     ]
   }
 }

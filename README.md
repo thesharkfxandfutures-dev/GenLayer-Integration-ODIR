@@ -25,7 +25,12 @@ docs/GENVM-TESTS.md               the denial and failure cases the contract must
 docs/CONTRACT-V2.md               expiry, revocation and package binding: the next contract version
 docs/ARCHITECTURE-TIERS.md        developer tool → team governance → enterprise platform
 factory/                          contract factory: an MCP server writes contracts, the owner signs and deploys
-.mcp.json · .claude/settings.json the factory's MCP server (genskill-mcp@2.3.3) and what it may not do
+brain/                            ODIR Brain loop skeleton (A2, dry run): lease lock, derived state, stop checks, Inspector, Recorder
+brain/QUEUE.md                    the owner's queue order and the pinned SnapLink registry hash
+schema/inspector-snapshot.v1.json the Inspector's snapshot of SnapLink's role registry (odir-inspector-snapshot/1)
+schema/brain-run.v1.json          one Brain run record (odir-brain-run/1)
+.github/workflows/brain-ci.yml    CI: Brain tests, schema gate, adapter tests (read-only token, no secrets)
+.mcp.json · .claude/settings.json the factory's MCP server (genskill-mcp@2.3.3) and what it and the Brain may not do
 ```
 
 ## Quick start
