@@ -19,18 +19,53 @@ async function loadClient() {
   }
 }
 
+const trimUrl = (u) => String(u).trim().replace(/\/+$/, '');
+const normName = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+const chainUrl = (c) => c.rpcUrls?.default?.http?.[0];
+
+// The names a config may use for a chain: the client's export key ("testnetBradbury"), that key
+// without its "testnet" prefix ("bradbury"), or the client's display name
+// ("Genlayer Bradbury Testnet"). Case, spaces and punctuation are ignored.
+function chainNames(key, chain) {
+  const k = normName(key);
+  const names = new Set([k, k.replace(/^testnet(?=.)/, '')]);
+  if (typeof chain.name === 'string') names.add(normName(chain.name));
+  return names;
+}
+
 // The chain comes from the client's own definition and must agree with the reviewed config;
-// a config naming a different chain id or RPC URL is a configuration failure, not a request
-// to talk to somewhere else.
+// a config naming a different chain id, name or RPC URL is a configuration failure, not a
+// request to talk to somewhere else.
+//
+// A chain id alone is not enough: genlayer-js 1.1.8 defines testnetAsimov and testnetBradbury
+// both as chain 4221. So the id narrows the client's chains, then `chain_name` (optional) and
+// `rpc_url` narrow them further, and exactly one chain must remain. Two left is refused as
+// ambiguous; the first match never wins by position.
 export function selectChain(chains, config) {
-  const candidates = Object.values(chains).filter((c) => c && typeof c === 'object' && Number.isInteger(c.id));
-  const chain = candidates.find((c) => c.id === config.chain_id);
-  if (!chain) throw new RpcError(`config chain_id ${config.chain_id} is not a chain the pinned client knows`, { category: 'configuration_failure', exit: 5 });
-  const url = chain.rpcUrls?.default?.http?.[0];
-  if (config.rpc_url && url && config.rpc_url.replace(/\/+$/, '') !== url.replace(/\/+$/, '')) {
-    throw new RpcError(`config rpc_url differs from the client's definition for chain ${chain.id} (${url})`, { category: 'configuration_failure', exit: 5 });
+  const fail = (message) => { throw new RpcError(message, { category: 'configuration_failure', exit: 5 }); };
+  const known = Object.entries(chains).filter(([, c]) => c && typeof c === 'object' && Number.isInteger(c.id));
+  let candidates = known.filter(([, c]) => c.id === config.chain_id);
+  if (candidates.length === 0) fail(`config chain_id ${config.chain_id} is not a chain the pinned client knows`);
+  const keys = () => candidates.map(([k]) => k).join(', ');
+
+  if (config.chain_name !== undefined && config.chain_name !== null) {
+    const wanted = typeof config.chain_name === 'string' ? normName(config.chain_name) : '';
+    if (!wanted) fail('config chain_name must be a non-empty string');
+    const named = candidates.filter(([k, c]) => chainNames(k, c).has(wanted));
+    if (named.length === 0) fail(`config chain_name "${config.chain_name}" is not chain ${config.chain_id} in the pinned client (chain ${config.chain_id} is ${keys()})`);
+    candidates = named;
   }
-  return chain;
+
+  if (config.rpc_url) {
+    const wanted = trimUrl(config.rpc_url);
+    // A client chain with no default URL cannot contradict the config, as before.
+    const byUrl = candidates.filter(([, c]) => !chainUrl(c) || trimUrl(chainUrl(c)) === wanted);
+    if (byUrl.length === 0) fail(`config rpc_url differs from the client's definition for chain ${config.chain_id} (${candidates.map(([k, c]) => `${k}: ${chainUrl(c)}`).join('; ')})`);
+    candidates = byUrl;
+  }
+
+  if (candidates.length > 1) fail(`config chain_id ${config.chain_id} is shared by ${keys()} in the pinned client; set rpc_url or chain_name to choose one`);
+  return candidates[0][1];
 }
 
 export async function readView(config, functionName, args, { timeoutMs = 20_000 } = {}) {
