@@ -94,6 +94,9 @@ export async function runOnce({
     return { outcome: record.outcome, acquired: true, record, recordName, plan, issueResult, released: true, releasedSha, writes: recorder.writes };
   } catch (e) {
     if (e instanceof LeaseLostError) return { outcome: 'LEASE_LOST', acquired: true, reason: e.reason, detail: e.message, released: false, writes: recorder.writes };
+    // Any other failure: give the lock back (still behind the lease check) so one transient error
+    // does not block every run for 40 minutes, then surface the error.
+    if (lock.held) { try { await lock.release(); } catch { /* lease already lost: nothing to give back */ } }
     throw e;
   }
 }

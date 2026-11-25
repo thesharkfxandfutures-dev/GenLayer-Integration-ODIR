@@ -100,7 +100,7 @@ function parseCallList(src, exportName, fn) {
 function parseFrozenStringArray(src, exportName) {
   const open = `export const ${exportName} = Object.freeze(`;
   const start = src.indexOf(open);
-  if (start < 0) throw new InspectorError(`missing ${exportName}`);
+  if (start < 0 || src.indexOf(open, start + 1) >= 0) throw new InspectorError(`expected exactly one "${open}"`);
   const v = parseValue(src, start + open.length);
   if (!Array.isArray(v.value) || !v.value.every((x) => typeof x === 'string')) throw new InspectorError(`${exportName} must be a string array`);
   if (!src.startsWith(');', skip(src, v.end))) throw new InspectorError(`${exportName}: expected );`);
@@ -123,8 +123,9 @@ export function inspectRegistry(text, { appId, ref, path = REGISTRY_PATH }) {
   if (typeof text !== 'string' || !text.length) throw new InspectorError('registry text missing');
   if (!text.includes(ROLE_FACTORY)) throw new InspectorError('role() factory signature changed; refusing to guess the argument order');
   if (!text.includes(SECTOR_FACTORY)) throw new InspectorError('sector() factory signature changed');
-  const rev = /export const TAXONOMY_REVISION = (\d+);/.exec(text);
-  if (!rev) throw new InspectorError('missing TAXONOMY_REVISION');
+  const revs = [...text.matchAll(/export const TAXONOMY_REVISION = (\d+);/g)];
+  if (revs.length !== 1) throw new InspectorError('expected exactly one TAXONOMY_REVISION');
+  const rev = revs[0];
   const families = parseFrozenStringArray(text, 'ROLE_FAMILIES');
   const sectors = parseCallList(text, 'SECTORS', 'sector').map((a) => {
     if (a.length !== 2 || !a.every(isStr)) throw new InspectorError(`sector(): expected (key, label), got ${JSON.stringify(a)}`);
@@ -137,10 +138,10 @@ export function inspectRegistry(text, { appId, ref, path = REGISTRY_PATH }) {
     const [key, label, legacyGroup, family, secs, synonyms = []] = a;
     if (![key, label, legacyGroup, family].every(isStr) || !isStrArr(secs) || !isStrArr(synonyms)) throw new InspectorError(`role(${JSON.stringify(key)}): wrong argument types`);
     if (!KEY.test(key)) throw new InspectorError(`role key ${JSON.stringify(key)} breaks the key pattern`);
-    if (seen.has(key)) throw new InspectorError(`duplicate role key ${key}`);
+    if (seen.has(key)) throw new InspectorError(`duplicate role key ${JSON.stringify(key)}`);
     seen.add(key);
-    if (!families.includes(family)) throw new InspectorError(`role ${key}: unknown family ${family}`);
-    for (const s of secs) if (!sectorKeys.has(s)) throw new InspectorError(`role ${key}: unknown sector ${s}`);
+    if (!families.includes(family)) throw new InspectorError(`role ${key}: unknown family ${JSON.stringify(family)}`);
+    for (const s of secs) if (!sectorKeys.has(s)) throw new InspectorError(`role ${key}: unknown sector ${JSON.stringify(s)}`);
     return { key, label, family, sectors: secs };
   });
   if (!roles.length) throw new InspectorError('no roles');

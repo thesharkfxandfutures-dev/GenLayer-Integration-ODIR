@@ -59,6 +59,12 @@ test('git store: a stale fast-forward is refused and a second create is refused'
   assert.equal(parseLease((await s.getRef()).message).run_id, 'b');
 });
 
+test('git store: a broken lock directory is an error, not a lost race', async () => {
+  const notRepo = fs.mkdtempSync(path.join(os.tmpdir(), 'brain-notrepo-'));
+  const lock = new LeaseLock({ store: new GitRefStore({ dir: path.join(notRepo, 'missing') }), runId: 'run-a', clock: clock().now });
+  await assert.rejects(lock.acquire(), /read brain\/lock/);
+});
+
 // A fake GitHub with the git-data semantics the store relies on.
 function fakeGitHub() {
   const objs = new Map(); const refs = new Map(); const calls = [];

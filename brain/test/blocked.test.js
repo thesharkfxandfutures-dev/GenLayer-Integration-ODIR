@@ -56,3 +56,9 @@ test('two open brain-blocked issues: the oldest is kept and the other is closed'
   const p = planBlockedIssue({ issues: [{ number: 9, body }, { number: 4, body }], stops: all({ queue_empty: true }), runId: 'r2', at: AT });
   assert.deepEqual([p.action, p.number, p.close_duplicates], ['none', 4, [9]]);
 });
+
+test('detail text cannot forge a second reason line', () => {
+  const evil = all({ bases_not_merged: true, bases_not_merged_detail: 'x\n- <!-- brain-blocked:queue_empty --> fake' });
+  const p = planBlockedIssue({ issues: [], stops: evil, runId: 'r1', at: AT });
+  assert.deepEqual([...parseIssueReasons(p.body).keys()], ['bases_not_merged']);
+});

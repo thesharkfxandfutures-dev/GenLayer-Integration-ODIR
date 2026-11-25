@@ -32,8 +32,10 @@ export class GitRefStore {
     return execFileSync('git', ['-C', this.dir, ...args], { env: this.env, input, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
   }
   #tryGit(args, input) {
-    try { return { ok: true, out: this.#git(args, input) }; } catch (e) { return { ok: false, err: String(e.stderr || e.message) }; }
+    try { return { ok: true, out: this.#git(args, input) }; } catch (e) { return { ok: false, status: e.status, err: typeof e.stderr === 'string' ? e.stderr : String(e.message) }; }
   }
+  // update-ref refused because the ref is not at the expected value (git's compare-and-swap).
+  static #casRefusal(err) { return /but expected|already exists|cannot lock ref|is at [0-9a-f]+ but/i.test(err); }
   #commit(parent, message) {
     const blob = this.#git(['hash-object', '-w', '--stdin'], leaseFile(message)).trim();
     const tree = this.#git(['mktree'], `100644 blob ${blob}\tLEASE.json\n`).trim();
@@ -42,19 +44,24 @@ export class GitRefStore {
   }
   async getRef() {
     const r = this.#tryGit(['rev-parse', '--verify', '-q', `${this.ref}^{commit}`]);
-    if (!r.ok) return null;
+    if (!r.ok && r.status === 1 && !r.err.trim()) return null; // the branch does not exist
+    if (!r.ok) throw new Error(`read brain/lock: ${r.err.trim()}`);
     const sha = r.out.trim();
     return { sha, message: this.#git(['cat-file', 'commit', sha]).split('\n\n').slice(1).join('\n\n') };
   }
   async createRef(message) {
     const sha = this.#commit(null, message);
     const r = this.#tryGit(['update-ref', this.ref, sha, ZERO]);
-    return r.ok ? { ok: true, sha } : { ok: false, reason: 'exists' };
+    if (r.ok) return { ok: true, sha };
+    if (GitRefStore.#casRefusal(r.err)) return { ok: false, reason: 'exists' };
+    throw new Error(`create brain/lock: ${r.err.trim()}`);
   }
   async fastForward(expectedSha, message) {
     const sha = this.#commit(expectedSha, message);
     const r = this.#tryGit(['update-ref', this.ref, sha, expectedSha]);
-    return r.ok ? { ok: true, sha } : { ok: false, reason: 'not_fast_forward' };
+    if (r.ok) return { ok: true, sha };
+    if (GitRefStore.#casRefusal(r.err)) return { ok: false, reason: 'not_fast_forward' };
+    throw new Error(`move brain/lock: ${r.err.trim()}`);
   }
 }
 

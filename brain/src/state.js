@@ -4,7 +4,9 @@
 //
 // A repo view is { readFile(ref, path) -> string|null, listTree(ref) -> string[]|null }.
 // Open pull requests are [{ number, head_ref, labels: [name], body }]. A promotion PR lists its
-// items in its body as `<!-- brain-items: key1,key2 -->`.
+// items in its body as `<!-- brain-items: key1,key2 -->`. Only a PR from a `brain/promote-*`
+// branch that carries the `brain-promote` label counts: labels need write or triage access, so a
+// stranger's PR in this public repo cannot move roles out of the queue.
 import { parseQueue, queueOrder } from './queue.js';
 
 export const QUEUE_PATH = 'brain/QUEUE.md';
@@ -19,10 +21,14 @@ export const PHASE1_FILES = [
 export const STAGES = ['queued', 'holding', 'promoted', 'approved'];
 
 const ITEMS = /<!--\s*brain-items:\s*([a-z0-9_,\s]*)-->/;
+export const PROMOTE_LABEL = 'brain-promote';
+export const PROMOTE_BRANCH_PREFIX = 'brain/promote-';
 
 export function promotedKeys(pulls) {
   const out = new Map();
   for (const p of pulls || []) {
+    if (!String(p.head_ref || '').startsWith(PROMOTE_BRANCH_PREFIX)) continue;
+    if (!(p.labels || []).includes(PROMOTE_LABEL)) continue;
     const m = ITEMS.exec(p.body || '');
     if (!m) continue;
     for (const k of m[1].split(',').map((s) => s.trim()).filter(Boolean)) if (!out.has(k)) out.set(k, p.number);

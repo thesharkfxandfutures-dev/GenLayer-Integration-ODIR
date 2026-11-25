@@ -139,3 +139,53 @@ test('a snapshot handed in as data is verified; a tampered one stops the run', a
   const ok = await runOnce({ ...base({ registry: null, snapshot: snap }), runId: 'run-b', clock: c.now, store });
   assert.equal(ok.outcome, 'WOULD_ACT');
 });
+
+test('an unexpected error after the lock is taken releases the lock, then surfaces', async () => {
+  const store = new MemoryRefStore(); const c = clock();
+  const broken = { readFile: async () => null, listTree: async () => { throw new Error('git exploded'); } };
+  await assert.rejects(runOnce({ ...base({ repo: broken }), runId: 'run-a', clock: c.now, store }), /git exploded/);
+  assert.deepEqual(store.history().map((l) => `${l.run_id}:${l.state}`), ['run-a:held', 'run-a:released']);
+  const next = await new LeaseLock({ store, runId: 'run-b', clock: c.now }).acquire();
+  assert.equal(next.mode, 'after_release');
+});
+
+test('a check that cannot be evaluated keeps its issue line (issue writes enabled)', async () => {
+  const store = new MemoryRefStore(); const c = clock(); const issues = fakeIssues();
+  // run 1: everything evaluable, the queue is empty -> issue opened for queue_empty
+  const allDone = repoWith({ pin: snap.registry_sha256, approved: snap.roles.map((r) => r.key) });
+  await runOnce({ ...base({ repo: allDone }), runId: 'run-1', clock: c.now, store, issues, openBlockedIssues: issues.open(), dryRun: false });
+  assert.deepEqual(issues.calls, ['create:100']);
+  // run 2: the snapshot is unusable, so queue_empty cannot be evaluated: it must stay
+  c.advance(5 * MIN);
+  const bad = structuredClone(snap); bad.role_count = 99;
+  const r = await runOnce({ ...base({ registry: null, snapshot: bad, repo: allDone }), runId: 'run-2', clock: c.now, store, issues, openBlockedIssues: issues.open(), dryRun: false });
+  assert.equal(r.record.stops.find((s) => s.reason === 'queue_empty').open, null);
+  assert.deepEqual([r.plan.action, r.plan.added, r.plan.kept], ['update', ['registry_hash_changed'], ['queue_empty']]);
+  assert.match(issues.issues[0].body, /brain-blocked:queue_empty/);
+  assert.equal(issues.issues[0].state, 'open');
+});
+
+test('lost lease between the closing comment and the close: the issue is not closed', async () => {
+  const store = new MemoryRefStore(); const c = clock(); const issues = fakeIssues();
+  await runOnce({ ...base({ repo: repoWith({ pin: null }) }), runId: 'run-1', clock: c.now, store, issues, openBlockedIssues: issues.open(), dryRun: false });
+  const comment = issues.comment;
+  issues.comment = async (n, t) => { await comment(n, t); c.advance(41 * MIN); await new LeaseLock({ store, runId: 'run-x', clock: c.now }).acquire(); };
+  c.advance(5 * MIN);
+  const r = await runOnce({ ...base(), runId: 'run-2', clock: c.now, store, issues, openBlockedIssues: issues.open(), dryRun: false });
+  assert.equal(r.outcome, 'LEASE_LOST');
+  assert.deepEqual(issues.calls, ['create:100', 'comment:100']);
+  assert.equal(issues.issues[0].state, 'open');
+});
+
+test('lost lease between a duplicate\'s comment and its close: the duplicate stays open', async () => {
+  const store = new MemoryRefStore(); const c = clock();
+  const first = await runOnce({ ...base({ repo: repoWith({ pin: null }) }), runId: 'run-0', clock: c.now, store });
+  const issues = fakeIssues([{ number: 3, body: first.plan.body }, { number: 8, body: first.plan.body }]);
+  const comment = issues.comment;
+  issues.comment = async (n, t) => { await comment(n, t); c.advance(41 * MIN); await new LeaseLock({ store, runId: 'run-x', clock: c.now }).acquire(); };
+  c.advance(5 * MIN);
+  const r = await runOnce({ ...base({ repo: repoWith({ pin: null }) }), runId: 'run-1', clock: c.now, store, issues, openBlockedIssues: issues.open(), dryRun: false });
+  assert.equal(r.outcome, 'LEASE_LOST');
+  assert.deepEqual(issues.calls, ['comment:8']);
+  assert.deepEqual(issues.issues.map((i) => i.state), ['open', 'open']);
+});

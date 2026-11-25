@@ -47,8 +47,9 @@ export class Recorder {
     if (!this.issues) throw new RecordError('no issue store');
     const done = [];
     for (const n of plan.close_duplicates || []) {
-      await this.lock.assertHeld(`close duplicate issue #${n}`);
+      await this.lock.assertHeld(`comment on duplicate issue #${n}`);
       await this.issues.comment(n, 'Duplicate brain-blocked issue; the oldest open one is kept.');
+      await this.lock.assertHeld(`close duplicate issue #${n}`);
       await this.issues.close(n);
       done.push(`close_duplicate:${n}`);
     }
@@ -63,8 +64,9 @@ export class Recorder {
       await this.issues.comment(plan.number, plan.comment);
       done.push(`update:${plan.number}`);
     } else if (plan.action === 'close') {
-      await this.lock.assertHeld('close brain-blocked issue');
+      await this.lock.assertHeld('comment on brain-blocked issue');
       await this.issues.comment(plan.number, plan.comment);
+      await this.lock.assertHeld('close brain-blocked issue');
       await this.issues.close(plan.number);
       done.push(`close:${plan.number}`);
     }

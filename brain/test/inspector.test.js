@@ -67,6 +67,11 @@ test('the Inspector refuses shapes it does not understand instead of guessing', 
     revision: t.replace('TAXONOMY_REVISION = 1;', 'TAXONOMY_REVISION = REV;'),
     spread: t.replace("  role('retoucher'", "  ...more,\n  role('retoucher'"),
     empty: t.replace(/export const ROLES = freezeAll\(\[[\s\S]*?\]\);/, 'export const ROLES = freezeAll([\n]);'),
+    sevenArgs: t.replace("role('retoucher', 'Retoucher', 'Post-Production', 'MAKER', ['photography'], [])", "role('retoucher', 'Retoucher', 'Post-Production', 'MAKER', ['photography'], [], 'extra')"),
+    twoRoleBlocks: `${t}\nexport const ROLES = freezeAll([\n  role('barber', 'Barber', 'Beauty', 'CRAFT', ['hair_beauty_makeup']),\n]);\n`,
+    twoFamilyLists: t.replace('/** Bumped', "// export const ROLE_FAMILIES = Object.freeze(['WIZARD']);\n/** Bumped"),
+    twoRevisions: t.replace('/** Bumped', '// export const TAXONOMY_REVISION = 7;\n/** Bumped'),
+    newlineInString: t.replace("'Retoucher', 'Post", "'Re\ntoucher', 'Post"),
   };
   for (const [name, text] of Object.entries(bad)) {
     assert.notEqual(text, t, `${name} variant must differ`);

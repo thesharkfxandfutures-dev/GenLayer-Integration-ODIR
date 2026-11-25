@@ -138,6 +138,15 @@ test('a lease whose run id was rewritten is not this run\'s', async () => {
   await assert.rejects(a.assertHeld(), (e) => e.reason === 'moved');
 });
 
+test('a forged child carrying this run\'s own id still counts as moved (the head sha is checked)', async () => {
+  const store = new MemoryRefStore(); const c = clock();
+  const a = lockFor(store, 'run-a', c);
+  await a.acquire();
+  const forged = formatLease({ schema: 'odir-brain-lease/1', run_id: 'run-a', state: 'held', at: new Date(c.now()).toISOString(), expires_at: new Date(c.now() + LEASE_MS).toISOString() });
+  await store.fastForward((await store.getRef()).sha, forged);
+  await assert.rejects(a.assertHeld(), (e) => e.reason === 'moved');
+});
+
 test('parseLease refuses malformed leases', () => {
   const ok = { schema: 'odir-brain-lease/1', run_id: 'r1', state: 'held', at: '2026-11-25T12:00:00.000Z', expires_at: '2026-11-25T12:40:00.000Z' };
   assert.equal(parseLease(formatLease(ok)).run_id, 'r1');

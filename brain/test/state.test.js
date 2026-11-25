@@ -70,7 +70,8 @@ test('matching pin but phase 1 bases missing: stop at bases_not_merged, nothing 
 });
 
 test('stages come from main, the holding bay and open PRs; the queue empties when nothing is queued', async () => {
-  const pulls = [{ number: 7, head_ref: 'brain/promote-1', labels: ['brain-promote'], body: 'Promote\n<!-- brain-items: model_fashion -->' }];
+  const pulls = [{ number: 7, head_ref: 'brain/promote-1', labels: ['brain-promote'], body: 'Promote\n<!-- brain-items: model_fashion -->' },
+    { number: 8, head_ref: 'fork/x', labels: [], body: '<!-- brain-items: retoucher -->' }];
   const opts = { pin: snap.registry_sha256, approved: ['photographer'], holding: ['holding/templates/craft/makeup_artist/module.json'] };
   const { state, stop, action } = await stopsFor(opts, { pulls });
   assert.deepEqual(state.stages, { photographer: 'approved', makeup_artist: 'holding', model_fashion: 'promoted', retoucher: 'queued' });
@@ -95,7 +96,22 @@ test('genskill missing limits on-chain steps only; template work carries on', as
   assert.deepEqual([action.would_do, action.item], ['draft_role', 'photographer']);
 });
 
-test('promotion markers are read only from the brain-items comment', () => {
-  const m = promotedKeys([{ number: 3, body: 'mentions photographer in prose' }, { number: 4, body: '<!-- brain-items: retoucher, dj -->' }]);
+const promo = (number, body, over = {}) => ({ number, head_ref: `brain/promote-${number}`, labels: ['brain-promote'], body, ...over });
+
+test('promotion markers are read only from the brain-items comment of a labelled brain/promote-* PR', () => {
+  const m = promotedKeys([promo(3, 'mentions photographer in prose'), promo(4, '<!-- brain-items: retoucher, dj -->')]);
   assert.deepEqual([...m.entries()], [['retoucher', 4], ['dj', 4]]);
+});
+
+test('a stranger\'s PR cannot mark roles promoted: the label and the brain/promote- branch are both required', () => {
+  const body = '<!-- brain-items: photographer -->';
+  assert.equal(promotedKeys([promo(9, body, { labels: [] })]).size, 0, 'no label');
+  assert.equal(promotedKeys([promo(9, body, { head_ref: 'evil/brain-items' })]).size, 0, 'wrong branch');
+  assert.equal(promotedKeys([promo(9, body, { head_ref: 'brain/holding' })]).size, 0, 'not a promote branch');
+  assert.equal(promotedKeys([promo(9, body)]).size, 1);
+});
+
+test('when two promotion PRs list one role, the first listed PR is recorded', () => {
+  const m = promotedKeys([promo(5, '<!-- brain-items: retoucher -->'), promo(6, '<!-- brain-items: retoucher, dj -->')]);
+  assert.deepEqual([...m.entries()], [['retoucher', 5], ['dj', 6]]);
 });

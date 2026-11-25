@@ -17,7 +17,10 @@ export function parseIssueReasons(body) {
   return out;
 }
 
-const line = (stop, runId, at) => `- <!-- brain-blocked:${stop.reason} --> **${stop.reason}** — since ${at} (run ${runId}): ${stop.detail}`;
+// Details are flattened to one line and stripped of comment markers, so no detail text can
+// forge a second reason line.
+const clean = (s) => String(s).replace(/[\r\n\u2028\u2029]+/g, ' ').replace(/<!--|-->/g, '');
+const line = (stop, runId, at) => `- <!-- brain-blocked:${stop.reason} --> **${stop.reason}** — since ${at} (run ${clean(runId)}): ${clean(stop.detail)}`;
 
 export function renderBody(lines) {
   return [
