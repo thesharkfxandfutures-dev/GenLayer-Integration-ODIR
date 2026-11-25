@@ -60,7 +60,7 @@ Two parties claim one photograph; decide whose claim the public evidence support
 - **Must refuse:** a third claimant; a statement edited after both are in; a decision request
   before both statements exist.
 
-## 12. award_revocation_review — `drafted`
+## 12. award_revocation_review — `drafted (PR #14)`
 
 Award contract (owner's page row 12). Any award: champion seats, percentage plaques, Verified Work
 milestones, service medals and annual awards.
