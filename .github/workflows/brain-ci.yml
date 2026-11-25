@@ -1,5 +1,6 @@
 # CI scaffold for the ODIR Brain (slice A2). Runs the Brain's and the adapter's tests and the
 # schema gate on every push and pull request. Read-only token, no secrets, no deploys.
+# Node 22: `node --test "test/*.test.js"` needs glob support (Node 21+); Node 20 finds no files.
 # Later slices add: template rendering for every role x base pair (A3), and the check that a role
 # commit touches only its own folder.
 name: brain-ci
@@ -21,7 +22,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Brain tests
         working-directory: brain
         run: npm test
