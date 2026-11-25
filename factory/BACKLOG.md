@@ -60,7 +60,7 @@ Two parties claim one photograph; decide whose claim the public evidence support
 - **Must refuse:** a third claimant; a statement edited after both are in; a decision request
   before both statements exist.
 
-## 15. editorial_usage_check — `drafted`
+## 15. editorial_usage_check — `drafted (PR #17)`
 
 Role contract (owner's page "Role contracts (one per role)", row 15; the role is Fashion Model, role key
 `model_fashion`, fixed by the contract, not an input). A review contract for the dispute this role meets most:
