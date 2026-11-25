@@ -135,6 +135,7 @@ No check failed. The test re-runs below followed changes made on mutation-testin
 | Studionet reachability | 1 | pass | `genlayer_network_status` above | — |
 | Studionet schema | 1 | NOT_RUN | `unsupported_contract_rpc` with this source | not retried (endpoint refuses the operation) |
 | Studionet deploy simulation | 1 | pass | `"00"` → `null` | — |
+| Verifier | 1 | PASS | own clone at 424276b, source `9d4c2dac…dbc4b`: lint 0 errors / 0 warnings; `24 passed`; 9 of 9 planted mutations caught; coverage and safety audits clean | — |
 
 ## Open questions for the owner
 
@@ -213,3 +214,36 @@ VERDICT: DRAFTED — lint clean (connector and exact bytes), 24 direct-mode test
 52 planted mutations caught (the survivor is equivalent), Studionet reachable and the deploy simulation
 constructs (`00`); schema NOT_RUN (endpoint). The PR stays a draft until the owner deploys and the post-deploy
 Studionet check (transaction report and a view read) passes.
+
+## Independent verification (verifier agent, 2026-11-25T10:26Z)
+
+Done by a separate verifier agent that did not build the contract, in its own clone
+(`/home/claude/verify-editorial_usage_check`, branch `factory/editorial_usage_check-2026-11-25` at `424276b`).
+Judged against the owner's row 15 and the shared role-contract rules, not against the builder's claims above.
+Contract sha256 `9d4c2dac9c2caa8b78326443ba95c78562872e63d63f4a487dd7f5c0c33dbc4b`; test file sha256
+`19ff36ebcb7af806d453348ed6f54ebb2cf5aa3d30fe95a8b7ef13a82c2fd0c0`. Nothing was signed, sent or deployed; the
+Studionet deploy simulation was not repeated.
+
+| Check | How | Result | Grade |
+|---|---|---|---|
+| Lint | `genlayer_lint_contract` (genskill MCP) on the full source | `ok: true`, 0 errors, 0 warnings, 0 info, no findings | OBSERVED |
+| Tests | `python3 -m pytest tests/factory/test_editorial_usage_check.py -q` (genlayer-test 0.29.2, direct mode), 10:23 UTC | `24 passed in 0.67s` | OBSERVED |
+| Coverage: answers | read the tests | `EDITORIAL` + quoted placement: `test_editorial_when_the_published_use_is_editorial` (result and stored record checked field by field); `COMMERCIAL_USE` + quoted placement: `test_commercial_use_quotes_the_advertising_placement` (placement checked to be a quote from `what_happened`); a placement quoted from the terms is refused (`test_the_placement_must_be_quoted_from_the_published_use_not_the_terms`) | OBSERVED |
+| Coverage: must-refuse cases | read the tests; compared each test constant with the contract's `ERR_*` constant by script (all 15 identical) | usage terms missing → `test_refuses_a_booking_with_no_usage_terms` (`NO_USAGE_TERMS`, 20 variants); evidence hash does not match → `test_refuses_an_evidence_hash_that_does_not_match`; same case twice → `test_refuses_the_same_case_twice`; empty terms → `test_refuses_empty_terms`. `refused()` requires type `UserError` and `message ==` the exact text. Gaps: none | OBSERVED |
+| Refusals are fixed text | grep of every `raise` in the source | every refusal is `raise gl.vm.UserError(ERR_*)` with a module constant; no computed messages | OBSERVED |
+| Safety | read the source; grep for key, sign, send, transfer, emit, contract calls, web access | inputs are a public case id, public terms text, public account text/URLs and a sha256; docstring forbids names, emails, ages and private evidence; no key handling, no sending or cross-contract call, no web access (only `gl.nondet.exec_prompt`); line 1 is the pinned runner `py-genlayer:1jb45aa8…09h6`, line 2 blank; constructor documented in the module docstring; `run_nondet_unsafe` validator re-runs the judgment and compares only the verdict word; every LLM call in the tests is mocked with `direct_vm.mock_llm`. Findings: none | OBSERVED |
+| Mutation M1 | removed `_require_usage_terms(terms)` from `review_usage` | caught: `test_refuses_a_booking_with_no_usage_terms`, `test_a_refused_review_does_not_lock_the_case` (2 failed) | OBSERVED |
+| Mutation M2 | `_check_shape` always returns `EDITORIAL` | caught: `test_commercial_use_quotes_the_advertising_placement` and 5 others (6 failed) | OBSERVED |
+| Mutation M3 | removed the `candidate != sha256(what_happened)` comparison | caught: `test_refuses_an_evidence_hash_that_does_not_match`, `test_a_refused_review_does_not_lock_the_case` (2 failed) | OBSERVED |
+| Mutation M4 | removed the `case in self.reviews` same-case check | caught: `test_refuses_the_same_case_twice` (1 failed) | OBSERVED |
+| Mutation M5 | validator always returns `True` | caught: `test_validator_agrees_on_the_verdict_word_not_the_wording`, `test_validator_agrees_on_editorial` (2 failed) | OBSERVED |
+| Mutation M6 | parser maps the model's `EDITORIAL` to `COMMERCIAL_USE` and back | caught: `test_editorial_when_the_published_use_is_editorial`, `test_commercial_use_quotes_the_advertising_placement` and 11 others (13 failed) | OBSERVED |
+| Mutation M7 | empty-terms check reduced to a type check (blank terms pass on) | caught: `test_refuses_empty_terms` (1 failed) | OBSERVED |
+| Mutation M8 | `SAME_CASE_TWICE` text changed ("this case_id" → "this case") | caught: `test_refuses_the_same_case_twice` (1 failed): exact-text assertion is live | OBSERVED |
+| Mutation M9 | validator skips the shape check of the leader's result | caught: `test_validator_agrees_on_the_verdict_word_not_the_wording`, `test_validator_agrees_on_editorial` (2 failed) | OBSERVED |
+| Restore | `git checkout -- contracts/factory/editorial_usage_check.py` after each mutation | sha256 back to `9d4c2dac…dbc4b` every time; `git status` clean apart from pytest `__pycache__`, which was deleted; no mutation committed | OBSERVED |
+
+Note (not a defect): `review_usage` checks the owner and the case id format before empty terms, as the row-13
+template does; empty terms are still refused before the usage-terms check, the evidence hash and the same-case check.
+
+Verifier verdict: PASS
