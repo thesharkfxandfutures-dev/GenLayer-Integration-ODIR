@@ -59,3 +59,25 @@ Two parties claim one photograph; decide whose claim the public evidence support
   answer), with the deciding fact quoted.
 - **Must refuse:** a third claimant; a statement edited after both are in; a decision request
   before both statements exist.
+
+## 16. campaign_buyout_check — `drafted`
+
+Role contract (owner's page "Role contracts (one per role)", row 16; the role is Commercial Model, role key
+`model_commercial`, fixed by the contract, not an input). A review contract for the dispute this role meets most:
+did what happened match what was agreed?
+
+Is a campaign use inside the buyout's channels, territory and term?
+
+- **Inputs:** the agreed terms (the booking's buyout: channels, territory, term, and exactly one
+  `Booking date: YYYY-MM-DD` line; text both parties agree to make public), what happened (the campaign use:
+  channel, territory, placements and/or public URLs, as text, with `Use date:` / `Use dates:` / `First use:` lines)
+  and `evidence_sha256` of that account; plus a public `case_id`, added only so that "the same case twice" can be
+  refused (public data only).
+- **Decision:** `WITHIN_BUYOUT` or `BUYOUT_EXCEEDED`, with the buyout term exceeded quoted from the agreed terms
+  (for `BUYOUT_EXCEEDED` only). Comparative equivalence on the verdict word.
+- **Must refuse:** a use dated before the booking (the row's own; deterministic date rule, same day allowed, with
+  `NO_BOOKING_DATE` / `NO_USE_DATE` / `BAD_DATE` when a date is missing or malformed); an evidence hash that does
+  not match; the same case twice; empty terms (the table's shared refusals).
+- **Role-contract rules (rows 13-57):** one review contract per role; the three shared inputs; the shared
+  refusals each with exact text and their own test; the answer words are exactly the row's; built on the
+  row-13 template (shared helpers and runner, then the row's own check and prompt).
