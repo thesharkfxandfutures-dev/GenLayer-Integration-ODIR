@@ -118,6 +118,7 @@ MCP server: `genskill` claude.ai connector; tools `mcp__genskill__genlayer_*`. T
 | Studionet deploy simulation | 1 | tool error | `RLP string too short (code -32603)`: the `data` I pasted was cut short (request payload, not the contract) | same encoder output pasted again in full |
 | Studionet deploy simulation | 2 | tool error | `RLP string too short (code -32603)`: the paste was cut short again | same encoder output pasted in full, checked chunk by chunk |
 | Studionet deploy simulation | 3 | pass | `"00"` → `null` | — |
+| Verifier | 1 | PASS | independent clone at `240b86a`: lint 0 errors / 0 warnings, `22 passed`, every answer and the four must-refuse cases have exact-text tests, safety audit clean, 7 of 7 planted mutations caught, sha256 `1a9b3b4d…bcf6` restored after each | — |
 
 The two deploy-simulation errors are tooling (a truncated request), not the contract, so they do not count
 against it.
@@ -187,3 +188,44 @@ Read-only checks afterwards: `genlayer receipt <tx hash>`; `genlayer call <addre
 VERDICT: DRAFTED — lint clean, 22 direct-mode tests pass with the model mocked, 33 of 33 planted mutations
 caught, Studionet reachable and the deploy simulation constructs (`00`); schema NOT_RUN (endpoint). The PR stays
 a draft until the owner deploys and the post-deploy Studionet check (transaction report and a view read) passes.
+
+## Independent verification (verifier agent, 2026-11-25T10:03Z)
+
+Verifier: a separate agent that did not build the contract, judging the code against the owner's row 13
+(`DELIVERED` / `SHORTFALL` + the missing item; must refuse a brief with no licence terms) and the shared
+role-contract refusals (an evidence hash that does not match; the same case twice; empty terms). Own clone at
+`/home/claude/verify-photo_delivery_review`, branch head `240b86a`. The builder's claims above were not used as
+evidence. Contract sha256 `1a9b3b4d5d5a4b30518b7544e5e50e41e411e9f4cae6933d20edb35e80b3bcf6`; test file sha256
+`f0e5369766b5e9dd0eee47bdee0b177e38b1d9a35d1995bd015844174711c872`. Python 3.13.18, pytest 9.1.1,
+genlayer-test 0.29.2 (direct mode). The Studionet deploy simulation was not redone.
+
+| Check | How | Result | Grade |
+|---|---|---|---|
+| Lint | `mcp__genskill__genlayer_lint_contract` on the full 455-line source | `ok: true`, 0 errors, 0 warnings, 0 info, no findings. Source pasted by hand from the file; the file has no tabs, trailing whitespace, CR or non-ASCII bytes, but byte identity of the paste was not machine-checked | OBSERVED |
+| Tests | `python3 -m pytest tests/factory/test_photo_delivery_review.py -q` | `22 passed` (first run 56.60s incl. warm-up; re-run on the restored source `22 passed in 0.60s`) | OBSERVED |
+| Coverage: `DELIVERED` | read the tests | `test_delivered_when_the_delivery_matches_the_brief` asserts the whole result dict and the stored record | OBSERVED |
+| Coverage: `SHORTFALL` + missing item | read the tests | `test_shortfall_names_the_missing_item_quoted_from_the_terms` asserts verdict and `missing_item == "40 edited images"` (also `..._quoted_from_the_delivery_account`) | OBSERVED |
+| Coverage: no licence terms | read the tests | `test_refuses_a_brief_with_no_licence_terms`, full `NO_LICENCE_TERMS` text, 15 variants | OBSERVED |
+| Coverage: evidence hash does not match | read the tests | `test_refuses_an_evidence_hash_that_does_not_match`, full `EVIDENCE_HASH_MISMATCH` text | OBSERVED |
+| Coverage: same case twice | read the tests | `test_refuses_the_same_case_twice`, full `SAME_CASE_TWICE` text | OBSERVED |
+| Coverage: empty terms | read the tests | `test_refuses_empty_terms`, full `EMPTY_TERMS` text | OBSERVED |
+| Refusal form | grep of every `raise` in the source; read of gltest 0.29.2 `expect_revert` | every `raise` is `gl.vm.UserError(ERR_*)` with a fixed constant; each test passes the full fixed text to `expect_revert`, which checks that the error text contains it (it does not check the exception type; the type is established from the source) | OBSERVED |
+| Safety: public data only | read of inputs, docstring and prompt | inputs are a public case id, public terms text, public account text and a sha256; no name, email, age or private-evidence field is asked for; the prompt carries neither hash nor case id | OBSERVED |
+| Safety: no key, no sending | grep for emit / contract calls / transfer / submit / raw RPC / key / web | none: no key handling, no external contract call, no value transfer, no web access | OBSERVED |
+| Safety: source shape | read lines 1-3 and the docstring | line 1 pinned runner `py-genlayer:1jb45aa8…z09h6`, line 2 blank (no comment under the header); constructor `PhotoDeliveryReview()` documented in the module docstring | OBSERVED |
+| Safety: comparative equivalence | read `_judge` | `gl.vm.run_nondet_unsafe`; the validator checks the leader's shape, re-runs the judgment and agrees only on the same verdict word | OBSERVED |
+| Safety: mocks | read the tests and gltest `wasi_mock.py` | every LLM call uses `direct_vm.mock_llm`; an unmatched prompt raises `MockNotFoundError` (no live handler in direct mode); the contract reads no web page | OBSERVED |
+| Mutation M1 | removed the `_require_licence_terms(terms)` call | caught: `test_refuses_a_brief_with_no_licence_terms`, `test_a_refused_review_does_not_lock_the_case` (2 failed) | OBSERVED |
+| Mutation M2 | swapped `VERDICT_OK` and `VERDICT_SHORT` | caught: 17 failed, incl. `test_delivered_when_the_delivery_matches_the_brief`, `test_shortfall_names_the_missing_item_quoted_from_the_terms` | OBSERVED |
+| Mutation M3 | removed the evidence-hash comparison | caught: `test_refuses_an_evidence_hash_that_does_not_match` | OBSERVED |
+| Mutation M4 | removed the same-case check | caught: `test_refuses_the_same_case_twice` | OBSERVED |
+| Mutation M5 | validator always returns `True` | caught: `test_validator_agrees_on_the_verdict_word_not_the_wording`, `test_validator_agrees_on_delivered` | OBSERVED |
+| Mutation M6 | `_check_terms` no longer refuses empty or whitespace-only terms | caught: `test_refuses_empty_terms` | OBSERVED |
+| Mutation M7 | validator compares the whole result (wording) instead of the verdict word | caught: `test_validator_agrees_on_the_verdict_word_not_the_wording`, `test_validator_agrees_on_delivered` | OBSERVED |
+| Restore | `git checkout -- contracts/factory/photo_delivery_review.py` after each mutation | sha256 back to `1a9b3b4d…bcf6` every time; tracked files unchanged (only untracked `__pycache__` from pytest, deleted); no mutation committed | OBSERVED |
+
+Notes (not defects): the owner check and the case-id check run before the empty-terms check, so a non-owner
+or a bad id with empty terms gets `OWNER_ONLY` / `BAD_CASE_ID` first; the row does not fix an order.
+`evidence_sha256` is bound to the public `what_happened` text (the builder's open question to the owner stands).
+
+Verifier verdict: PASS
