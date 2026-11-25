@@ -60,7 +60,7 @@ Two parties claim one photograph; decide whose claim the public evidence support
 - **Must refuse:** a third claimant; a statement edited after both are in; a decision request
   before both statements exist.
 
-## 11. annual_award_decision — `drafted`
+## 11. annual_award_decision — `drafted (PR #13)`
 
 Award contract (owner's page, award table row 11). The annual awards: Photographer, Designer and Filmmaker of the
 Year; Emerging Talent; Creative Business and Studio of the Year (award codes `PHOTOGRAPHER_OF_THE_YEAR`,

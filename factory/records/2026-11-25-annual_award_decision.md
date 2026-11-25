@@ -3,7 +3,7 @@
 This is the factory run of 25 Nov 2026. The builder agent wrote contract #11 of the owner's page (the award table, row 11,
 an award contract; `factory/BACKLOG.md` item 11). Cloud workspace, genskill MCP server as the owner's claude.ai
 connector. Branch `factory/annual_award_decision-2026-11-25` from `main` (`f0a4525`).
-Pull request: left to the orchestrator (draft).
+Pull request: #13 (ready for review: verifier PASS and the pre-deploy Studionet check passed; the post-deploy check waits for the owner's transaction hash).
 
 Owner's row, as given to the builder:
 
