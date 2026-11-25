@@ -59,3 +59,23 @@ Two parties claim one photograph; decide whose claim the public evidence support
   answer), with the deciding fact quoted.
 - **Must refuse:** a third claimant; a statement edited after both are in; a decision request
   before both statements exist.
+
+## 14. video_cut_review — `drafted (PR #16)`
+
+Role contract (owner's page "Role contracts (one per role)", row 14; the role is Videographer, fixed by the
+contract, not an input). A review contract for the dispute this role meets most: did what happened match
+what was agreed?
+
+Does the cut meet the brief's runtime, aspect ratios and deliverables list?
+
+- **Inputs:** the agreed terms (text both parties agree to make public), what happened (a delivery note, a
+  log or public URLs, as text) and `evidence_sha256` of that account; plus a public `case_id`, added only so
+  that "the same case twice" can be refused (public data only).
+- **Decision:** `DELIVERED` or `SHORTFALL`, with the missing item quoted from the supplied public text.
+  Comparative equivalence on the verdict word.
+- **Must refuse:** a brief with no runtime (the row's own: no labelled `Runtime:` line with a duration in
+  digits, or a placeholder such as TBC); an evidence hash that does not match; the same case twice; empty
+  terms (the table's shared refusals).
+- **Role-contract rules (rows 13-57):** one review contract per role; the three shared inputs; the shared
+  refusals each with exact text and their own test; the answer words are exactly the row's; the contract
+  follows the row-13 template shape (shared helpers and runner, then the row's own check and prompt).
