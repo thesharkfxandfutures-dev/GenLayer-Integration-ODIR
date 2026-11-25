@@ -60,7 +60,7 @@ Two parties claim one photograph; decide whose claim the public evidence support
 - **Must refuse:** a third claimant; a statement edited after both are in; a decision request
   before both statements exist.
 
-## 13. photo_delivery_review — `drafted`
+## 13. photo_delivery_review — `drafted (PR #15)`
 
 Role contract (owner's page "Role contracts (one per role)", row 13; the role is Photographer, fixed by the
 contract, not an input). A review contract for the dispute this role meets most: did what happened match
