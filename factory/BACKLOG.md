@@ -59,3 +59,21 @@ Two parties claim one photograph; decide whose claim the public evidence support
   answer), with the deciding fact quoted.
 - **Must refuse:** a third claimant; a statement edited after both are in; a decision request
   before both statements exist.
+
+## 10. service_medal_award — `drafted`
+
+Award contract (owner's page row 10): Service medals for 1, 5, 10, 15, 20 and 25 years. Do the dated
+activity records show the stated years of active service in the role?
+
+- **Inputs:** role key, medal years, dated activity summary + hash (the draft adds `entrant_id`, a
+  public 64-hex hash standing for the entrant, never a name). Public data only.
+- **Decision:** `MEDAL_CONFIRMED` or `NOT_YET` + the gap (whole years still missing). The model counts
+  the years of active service the dated records show (without being told the medal sought); the contract
+  derives the word and the gap in plain code. Comparative equivalence on the verdict word (for `NOT_YET`
+  the validator's gap must also be within one year of the leader's).
+- **Must refuse:** medal years outside the six (`MEDAL_YEARS_NOT_OFFERED`); the same medal twice, i.e.
+  a second decision for the same entrant, role and medal years (`MEDAL_ALREADY_DECIDED`).
+- **Award-contract rules (rows 7–12):** one universal contract for all 45 roles, taking the role key as
+  an input (shape checked only: `BAD_ROLE_KEY`); refuse inputs that carry a forbidden selection signal
+  (likes, followers, votes, paid plan / subscription / premium / membership tier, boost) with
+  `FORBIDDEN_SIGNAL`, because paid membership must never improve anyone's chance of an award.
