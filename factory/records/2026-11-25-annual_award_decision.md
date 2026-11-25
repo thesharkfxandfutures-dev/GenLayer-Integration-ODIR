@@ -220,3 +220,54 @@ VERDICT: DRAFTED — lint clean (attempt 1); 24 direct-mode tests pass (attempt 
 planted mutations caught and the twelfth is equivalent; Studionet is reachable and the deploy simulation constructs
 (`00`); the schema is NOT_RUN (endpoint). The PR stays a draft until the owner deploys and the post-deploy Studionet
 check (transaction report and a view read) passes.
+
+## Independent verification (verifier agent, 2026-11-25 05:47 UTC)
+
+Fresh clone of branch `factory/annual_award_decision-2026-11-25`, HEAD checked `b56fbac941187d118758b2f7470c732a504ac350`.
+The builder's record was read only after the verdict below was reached.
+
+- `contracts/factory/annual_award_decision.py` sha256 `5d46d92cb5b3a3da400e3db836259710bbc59474748c1a198da20dd0a54631ac` (matches the build)
+- `tests/factory/test_annual_award_decision.py` sha256 `935f305c85fad670c3503cca61d02c27c0480ffbbce22ffebe091203015cf8e3`
+
+| Check | Attempt | Result | Grade | Evidence |
+|---|---|---|---|---|
+| genskill lint | `genlayer_lint_contract` on the full source, attempt 1 | 0 errors, 0 warnings, 0 infos | OBSERVED | "Looks deployable" |
+| Tests | `python3 -m pytest tests/factory/test_annual_award_decision.py -q`, attempt 1 | `24 passed in 0.67s` | OBSERVED | genlayer-test 0.29.2, GenVM direct mode |
+| Source shape | read the contract | pinned runner on line 1, blank line 2, no comment under the header; constructor `AnnualAwardDecision()` documented in the module docstring | OBSERVED | lines 1-3, 22-25 |
+| Answer words | read contract and tests | `WINNER` + finalist id (`test_winner_names_one_finalist_and_quotes_the_criteria`, all six award codes in `test_every_annual_award_code_is_served`) and `NO_AWARD` (`test_no_award_when_no_finalist_meets_the_criteria`) each have a test with the exact result object; criteria quote is returned and checked against the criteria text | OBSERVED | tests lines 113-191 |
+| Row refusal: fewer than two finalists | read | `TOO_FEW_FINALISTS` asserted with exact text for 0 and 1 finalists (and a duplicate id, which is not two finalists); two is accepted | OBSERVED | `test_refuses_fewer_than_two_finalists` |
+| Row refusal: season not at finalists | read | `SEASON_NOT_AT_FINALISTS` exact text; another season's stage does not open this one; `SEASON_ALREADY_AT_FINALISTS` also tested | OBSERVED | `test_refuses_a_decision_before_the_season_reaches_finalists` |
+| Row refusal: second decision | read | `AWARD_ALREADY_DECIDED` exact text, including after a NO_AWARD and with other finalists, criteria and a differently written award code; a different role, award or season is a separate award | OBSERVED | `test_refuses_a_second_decision_for_the_same_award_and_season` |
+| Award-table rule: forbidden signals | read | `FORBIDDEN_SIGNAL` exact text for likes, followers, votes/voting, paid plan, subscription, premium, membership tier, boost/boosted in evidence summaries (first and second finalist) and in the criteria text; whole-word matching proven by a clean "likeness" summary | OBSERVED | two tests, lines 264-308 |
+| Award-table rule: one universal contract for all roles | read | role key is an input (shape-checked, `BAD_ROLE_KEY` tested); award key is role + code + season | OBSERVED | `test_refuses_malformed_role_keys` |
+| Other refusals | read | owner-only, bad season, bad criteria, too many, bad finalists JSON (incl. an extra `name` key), bad id, bad hash, empty/long summary, unknown code, no decision, bad index, six malformed-model-answer cases: each has a test with exact text | OBSERVED | tests lines 313-497 |
+| Validator compares the verdict word | read + mutation | `mine["decision"] == theirs["decision"] and mine["winner_id"] == theirs["winner_id"]`; tests: same winner with different quote and reason agrees; other finalist or NO_AWARD disagrees; NO_AWARD agrees with NO_AWARD; forged or malformed leader results and a leader error disagree | OBSERVED | tests lines 501-558 |
+| Safety: calldata | read | arguments are role key, award code, year, criteria text, finalists JSON (id, public summary, sha256); the finalist id rejects `@` and spaces; no name/email field (an extra key is refused as `BAD_FINALISTS`); the prompt carries no evidence hash (asserted in `test_prompt_carries_the_public_inputs_and_no_hashes`) | OBSERVED | contract lines 292-357, 541-548 |
+| Safety: no key, no sending | grep for private, key, sign, raw_rpc, submit, eth_send, send_, secret, mnemonic, wallet, web calls | only docstring words ("private evidence", "signals", "Designer"); no web call, no signing or sending call, no key handling; the only external call is `gl.nondet.exec_prompt`, mocked with `direct_vm.mock_llm` in every test | OBSERVED | grep output |
+| Mutations | 10 planted one at a time, see below | all 10 caught | OBSERVED | below |
+| Clean after mutations | `git checkout -- <file>`, `sha256sum`, `git status` | sha256 unchanged (`5d46d92c...631ac`), working tree clean (only untracked `__pycache__` from pytest, removed) | OBSERVED | |
+| Deploy simulation | not run | the optional step needs the 53,456-character hex payload passed by hand into `genlayer_call_contract`; not attempted rather than risk a transcription error | NOT_RUN | the builder's record states `00`; this verifier did not reproduce it |
+
+### Mutations (each reverted with `git checkout -- contracts/factory/annual_award_decision.py`)
+
+| # | Mutation | Caught by |
+|---|---|---|
+| M1 | `MIN_FINALISTS = 2` to `1` | `test_refuses_fewer_than_two_finalists` |
+| M2 | season gate `if str(season) not in self.finalist_seasons` to `if False` | `test_refuses_a_decision_before_the_season_reaches_finalists` |
+| M3 | already-decided check to `if False` | `test_refuses_a_second_decision_for_the_same_award_and_season` |
+| M4 | validator returns `True` always | `test_validator_agrees_on_the_same_winner_not_the_wording` |
+| M5 | validator ignores the winner id | `test_validator_agrees_on_the_same_winner_not_the_wording` |
+| M6 | no forbidden-signal check on evidence summaries | `test_refuses_an_evidence_summary_that_carries_a_forbidden_signal` |
+| M7 | no forbidden-signal check on criteria text | `test_refuses_criteria_text_that_carries_a_forbidden_signal` |
+| M8 | model's WINNER need not name a finalist | `test_refuses_malformed_model_answers` |
+| M9 | owner check removed | `test_only_the_owner_writes` |
+| M10 | the "boost" terms removed from the forbidden list | `test_refuses_an_evidence_summary_that_carries_a_forbidden_signal` |
+
+### Observations (not defects)
+
+- An extra key such as `likes` on a finalist object is refused with `BAD_FINALISTS` (exact-keys rule), not `FORBIDDEN_SIGNAL`; the input is still refused. Probed with a scratch test outside the repository.
+- `finalist_id` and `role_key` are shape-checked but not scanned for forbidden words (a finalist id such as `top-voted-boosted` is accepted); only the criteria text and evidence summaries are scanned. The ids are meant to be opaque.
+- Matching is ASCII-lowercased whole words; Unicode look-alike spellings would not match.
+- Refusal order: `TOO_FEW_FINALISTS` is reported before `SEASON_NOT_AT_FINALISTS` when both apply.
+
+**Verdict: PASS**
