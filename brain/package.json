@@ -1,0 +1,17 @@
+{
+  "name": "odir-brain",
+  "version": "0.1.0",
+  "description": "ODIR Brain loop skeleton (slice A2): lease lock on brain/lock, derived state, stop checks, brain-blocked dedup, Inspector and Recorder scripts. Dry run only. No keys, no merges, no deploys.",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "odir-brain": "bin/brain.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.js\"",
+    "check-schemas": "node bin/check-schemas.mjs"
+  }
+}
