@@ -35,7 +35,10 @@ schema/agreement.v1.json          one resolved document, what the parchment show
 templates/bases/                  the bases (A3 pilot: p2p.json, b2p.json) — drafts for review, not legal advice
 templates/roles/<role_key>/       one module.json per role (A3 pilot: photographer)
 resolver/                         checks, resolver, terms hash, render-all and role-commit gates (A3)
-.github/workflows/brain-ci.yml    CI: Brain, adapter and template tests, schema gate, render every role x base, role-commit folders
+release/                          reproducible release bundle: templates + hashes + resolver as one ES module (A4)
+schema/template-release.v1.json   the manifest of one template release (odir.template-release.v1)
+.github/workflows/brain-ci.yml    CI: Brain, adapter, template and release tests, schema gate, render every role x base, role-commit folders, release check build
+.github/workflows/release-draft.yml on an owner's tag templates-vX.Y.Z on main: build twice, verify, open a DRAFT release
 .mcp.json · .claude/settings.json the factory's MCP server (genskill-mcp@2.3.3) and what it and the Brain may not do
 ```
 

@@ -1,0 +1,17 @@
+{
+  "name": "odir-template-release",
+  "version": "0.1.0",
+  "description": "ODIR template release (slice A4): a reproducible bundle of the role-contract templates, their hashes, and the resolver and hash code as one ES module with no imports, for SnapLink to import in D1. Built from git objects at a tag; the owner tags, CI drafts the release. Drafts, not legal advice. No dependencies, no keys, nothing live.",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "odir-build-release": "bin/build-release.mjs",
+    "odir-verify-release": "bin/verify-release.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.js\""
+  }
+}

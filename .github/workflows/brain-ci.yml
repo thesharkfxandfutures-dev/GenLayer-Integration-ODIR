@@ -3,6 +3,8 @@
 # Node 22: `node --test "test/*.test.js"` needs glob support (Node 21+); Node 20 finds no files.
 # A3 adds: the template tests, the check-and-render gate for every role x base pair that exists,
 # and the check that each role commit touches only its own folder.
+# A4 adds: the release tests, and a check build of the release bundle from HEAD — built twice
+# (byte-identical) and verified with a rebuild. Drafting a release is release-draft.yml, on a tag.
 name: brain-ci
 
 on:
@@ -37,6 +39,16 @@ jobs:
         run: npm test
       - name: Templates — check and render every role x base pair
         run: node resolver/bin/render-all.mjs
+      - name: Release tests
+        working-directory: release
+        run: npm test
+      - name: Release bundle — build twice from HEAD, byte-identical, verify with a rebuild
+        run: |
+          node release/bin/build-release.mjs --ref HEAD --out "$RUNNER_TEMP/r1"
+          node release/bin/build-release.mjs --ref HEAD --out "$RUNNER_TEMP/r2"
+          diff -r "$RUNNER_TEMP/r1" "$RUNNER_TEMP/r2"
+          node release/bin/verify-release.mjs --dir "$RUNNER_TEMP/r1" --rebuild --ref HEAD
+          (cd "$RUNNER_TEMP/r1" && sha256sum -c SHA256SUMS)
       - name: Role commits touch only their own folder
         # Pull request: every commit in the PR. Push: the commits this push added (on main too, so a
         # squash or a direct push is checked after the fact); a new branch: everything not on main.
