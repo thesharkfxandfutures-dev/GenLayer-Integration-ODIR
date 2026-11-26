@@ -89,11 +89,19 @@ test('success: one deploy of the exact code, address from the receipt\'s recipie
   assert.deepEqual(r.code, { sha256: EXPECTED_SOURCE_SHA256, matches: true, matchesAfterLf: true });
   assert.equal(r.network.consensusMainContract, BRADBURY.consensusMainContract);
   assert.equal(r.network.chainId, 4221);
-  assert.deepEqual(r.consensus, { address: BRADBURY.consensusMainContract, codeBytes: 1159 });
+  assert.deepEqual(r.consensus, {
+    main: { address: BRADBURY.consensusMainContract, codeBytes: 1159 },
+    data: { address: BRADBURY.consensusDataContract, codeBytes: 1159 },
+  });
+  assert.equal(r.evmTxHash, null, 'the mock client never touches the wallet, so no EVM hash here');
   assert.deepEqual(r.constructorArgs, [INITIAL_STORAGE]);
   assert.ok(r.sentAt && r.decidedAt && r.finishedAt);
 
-  assert.deepEqual(made, [{ chain: testnetBradbury, account: ACCOUNT, provider: wallet }], 'createClient({ chain: testnetBradbury, account, provider })');
+  assert.equal(made.length, 1);
+  assert.equal(made[0].chain, testnetBradbury);
+  assert.equal(made[0].account, ACCOUNT);
+  assert.notEqual(made[0].provider, wallet, 'the client gets the one-signature guard, not the raw wallet');
+  assert.equal(await made[0].provider.request({ method: 'eth_chainId' }), '0x107d', 'the guard passes reads through to the wallet');
   const names = client.calls.map((c) => c[0]);
   assert.deepEqual(names, ['deployContract', 'waitForTransactionReceipt', 'getContractCode'], 'one deploy, no connect(), no second send');
   assert.deepEqual(client.calls[0][1], { code: SOURCE, args: [INITIAL_STORAGE], leaderOnly: false });
@@ -139,6 +147,22 @@ test('wallet account changed after Connect → ACCOUNT_CHANGED, nothing sent', a
   const { p, client } = run({ prepared, wallet });
   await assert.rejects(p, (e) => e.code === 'ACCOUNT_CHANGED');
   assert.equal(client.calls.length, 0);
+});
+
+test('a client that reports another chain is refused before it can send', async () => {
+  const { wallet, prepared } = await ready();
+  const client = { ...mockClient(), chain: testnetAsimov };
+  client.calls = [];
+  const deployCalls = [];
+  client.deployContract = async (a) => { deployCalls.push(a); return TX_ID; };
+  await assert.rejects(deployAndVerify({ prepared, provider: wallet, chain: testnetBradbury, confirmed: true, makeClient: () => client }), (e) => e.code === 'WRONG_CONFIG');
+  assert.equal(deployCalls.length, 0);
+});
+
+test('prepare stops when the consensus DATA contract has no code (receipts are read from it)', async () => {
+  const rpc = mockRpc({ handlers: { eth_getCode: ([addr]) => (addr === BRADBURY.consensusDataContract ? '0x' : `0x${'60'.repeat(1159)}`) } });
+  await assert.rejects(prepare({ provider: mockWallet(), rpcRequest: rpc, chain: testnetBradbury, source: SOURCE }), (e) => e.code === 'CONSENSUS_NOT_DEPLOYED' && /consensus data contract/.test(e.message));
+  assert.deepEqual(rpc.calls.filter((c) => c.method === 'eth_getCode').map((c) => c.params[0]), [BRADBURY.consensusMainContract, BRADBURY.consensusDataContract]);
 });
 
 test('a non-Bradbury chain at deploy time is refused before the client exists', async () => {
@@ -198,7 +222,8 @@ test('undecided or cancelled consensus → FAILED_CONSENSUS, even if an executio
 test('no usable recipient → NO_ADDRESS; the address is never taken from anywhere else', async () => {
   for (const recipient of [undefined, null, `0x${'0'.repeat(40)}`, '0x123', CONTRACT.toUpperCase()]) {
     const { wallet, prepared } = await ready();
-    const client = mockClient({ receipt: async () => ({ ...okReceipt({ recipient }), txDataDecoded: { contractAddress: CONTRACT } }) });
+    // the contract address is on other fields too: none of them may be used
+    const client = mockClient({ receipt: async () => ({ ...okReceipt({ recipient }), to: CONTRACT, to_address: CONTRACT, contractAddress: CONTRACT, txDataDecoded: { contractAddress: CONTRACT } }) });
     const r = await run({ prepared, wallet, client }).p;
     assert.equal(r.outcome, 'NO_ADDRESS', String(recipient));
     assert.equal(r.contractAddress, null);
@@ -225,6 +250,6 @@ test('the record carries no secret and no source text', async () => {
   assert.ok(!/private|mnemonic|secret/i.test(text));
   assert.deepEqual(Object.keys(r).sort(), [
     'account', 'code', 'consensus', 'constructorArgs', 'decidedAt', 'executionResult', 'finishedAt', 'genlayerJs', 'network', 'note',
-    'outcome', 'preparedAt', 'sameChain', 'schema', 'sentAt', 'source', 'statusName', 'txId', 'wallet', 'contractAddress',
+    'outcome', 'preparedAt', 'sameChain', 'schema', 'sentAt', 'source', 'statusName', 'txId', 'wallet', 'contractAddress', 'evmTxHash',
   ].sort());
 });

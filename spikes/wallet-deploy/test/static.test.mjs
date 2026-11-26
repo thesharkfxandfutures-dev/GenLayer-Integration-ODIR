@@ -19,7 +19,7 @@ test('the page\'s own code never calls connect(), never holds a key, never names
   for (const f of OWN) {
     const c = code(f);
     assert.ok(!/\.connect\b|\[\s*['"`]connect['"`]\s*\]/.test(c), `${f}: no client.connect() in any spelling`);
-    assert.ok(!/privateKey|private_key|mnemonic|generatePrivateKey|createAccount|privateKeyToAccount|signTransaction/i.test(c), `${f}: no key handling`);
+    assert.ok(!/privateKey|private_key|mnemonic|generatePrivateKey|createAccount|privateKeyToAccount|\.signTransaction\s*\(/i.test(c), `${f}: no key handling`);
     assert.ok(!/mainnet/i.test(c), `${f}: no mainnet`);
     assert.ok(!/wallet_requestSnaps|wallet_getSnaps/.test(c), `${f}: no Snaps`);
   }

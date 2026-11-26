@@ -113,3 +113,49 @@ test('the page with the real client: a rejected MetaMask signature stops at REJE
   assert.equal(sends.length, 1, 'one attempt, no retry with the fallback encoding');
   assert.ok(!wallet.calls.some((c) => /^wallet_(requestSnaps|getSnaps|addEthereumChain|switchEthereumChain)$/.test(c.method)), 'no Snap, no network change when already on Bradbury');
 });
+
+test('the library\'s ABI-mismatch fallback cannot become a second MetaMask prompt (verifier S1)', async (t) => {
+  const rpc = stubFetch(RPC_BASICS);
+  t.after(rpc.restore);
+  let n = 0;
+  const wallet = mockWallet({ handlers: { eth_sendTransaction: () => { n += 1; throw new Error('could not decode result data'); } } });
+  const prepared = await prepare({ provider: wallet, rpcRequest: mockRpc(), chain: testnetBradbury, source: SOURCE });
+  await assert.rejects(deployAndVerify({
+    prepared, provider: wallet, chain: testnetBradbury, confirmed: true,
+    makeClient: ({ chain, account, provider }) => createClient({ chain, account, provider }),
+  }), (e) => e.code === 'SEND_FAILED' && /SECOND_SIGNATURE_REFUSED/.test(e.message) && /nothing was broadcast/.test(e.message));
+  assert.equal(n, 1, 'the wallet was asked to sign exactly once');
+});
+
+test('broadcast but no GenLayer transaction (no NewTransaction log): a SENT_NOT_PROCESSED record with the EVM hash (verifier S2)', async (t) => {
+  const rpc = stubFetch({ ...RPC_BASICS, eth_getTransactionReceipt: () => ({ ...evmReceipt(), logs: [] }), eth_getTransactionByHash: () => null });
+  t.after(rpc.restore);
+  const wallet = mockWallet({ handlers: { eth_sendTransaction: () => EVM_HASH } });
+  const prepared = await prepare({ provider: wallet, rpcRequest: mockRpc(), chain: testnetBradbury, source: SOURCE });
+  const r = await deployAndVerify({
+    prepared, provider: wallet, chain: testnetBradbury, confirmed: true,
+    makeClient: ({ chain, account, provider }) => createClient({ chain, account, provider }),
+  });
+  assert.equal(r.outcome, 'SENT_NOT_PROCESSED');
+  assert.equal(r.evmTxHash, EVM_HASH);
+  assert.equal(r.txId, null);
+  assert.match(r.error, /no NewTransaction or CreatedTransaction event/);
+  assert.equal(wallet.calls.filter((c) => c.method === 'eth_sendTransaction').length, 1);
+});
+
+test('real client end to end until the receipt read fails: NOT_DECIDED record with both the EVM hash and the GenLayer id', async (t) => {
+  const rpc = stubFetch({ ...RPC_BASICS, eth_getTransactionReceipt: () => evmReceipt(), eth_getTransactionByHash: () => null });
+  t.after(rpc.restore);
+  const wallet = mockWallet({ handlers: { eth_sendTransaction: () => EVM_HASH } });
+  const prepared = await prepare({ provider: wallet, rpcRequest: mockRpc(), chain: testnetBradbury, source: SOURCE });
+  const r = await deployAndVerify({
+    prepared, provider: wallet, chain: testnetBradbury, confirmed: true, wait: { retries: 0, interval: 1 },
+    makeClient: ({ chain, account, provider }) => createClient({ chain, account, provider }),
+  });
+  assert.equal(r.outcome, 'NOT_DECIDED');
+  assert.equal(r.evmTxHash, EVM_HASH);
+  assert.equal(r.txId, TX_ID);
+  assert.ok(rpc.seen.some((s) => s.method === 'eth_call'), 'the receipt is read from the data contract over Bradbury\'s RPC');
+  const dataCall = rpc.seen.find((s) => s.method === 'eth_call');
+  assert.equal(dataCall.params[0].to.toLowerCase(), BRADBURY.consensusDataContract.toLowerCase());
+});

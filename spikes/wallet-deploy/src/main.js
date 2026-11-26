@@ -69,7 +69,7 @@ $('connect').addEventListener('click', async () => {
   try {
     log('Asking the wallet for an account, switching it to Bradbury (adding the network if needed), comparing a recent block, checking the consensus contract has code…');
     prepared = await prepare({ provider: window.ethereum, rpcRequest, chain: testnetBradbury, source });
-    show('wallet-state', `Account ${prepared.account} on chain ${BRADBURY.chainIdHex}; block ${prepared.sameChain.height} hash ${prepared.sameChain.hash} matches Bradbury's RPC; consensus contract has ${prepared.consensus.codeBytes} bytes of code.`);
+    show('wallet-state', `Account ${prepared.account} on chain ${BRADBURY.chainIdHex}; block ${prepared.sameChain.height} hash ${prepared.sameChain.hash} matches Bradbury's RPC; consensus contracts have code (main ${prepared.consensus.main.codeBytes} bytes, data ${prepared.consensus.data.codeBytes} bytes).`);
     $('wallet-state').className = 'ok';
     log(`Ready. Switched: ${prepared.wallet.switched}, network added: ${prepared.wallet.added}. Nothing signed yet.`);
   } catch (err) {
@@ -87,6 +87,7 @@ $('confirm').addEventListener('change', refreshDeployButton);
 $('deploy').addEventListener('click', async () => {
   $('deploy').disabled = true;
   $('connect').disabled = true;
+  let broadcast = false; // once the wallet has sent, no message may say "nothing was sent"
   try {
     log('Opening MetaMask for ONE deploy signature. Check that its "to" is Bradbury\'s consensus contract.');
     const result = await deployAndVerify({
@@ -96,16 +97,16 @@ $('deploy').addEventListener('click', async () => {
       chain: testnetBradbury,
       confirmed: $('confirm').checked,
       onStep: (step, r) => {
-        if (step === 'sent') log(`Sent. GenLayer transaction ${r.txId}. Waiting for consensus (up to 20 min)…`);
+        if (step === 'sent') { broadcast = true; log(`Sent. GenLayer transaction ${r.txId}. Waiting for consensus (up to 20 min)…`); }
         if (step === 'decided') log(`Decided: ${r.statusName}, execution ${r.executionResult}.`);
         setRecord({ ...r });
       },
     });
     setRecord(result);
-    log(`Outcome: ${result.outcome}${result.contractAddress ? ` — contract ${result.contractAddress}` : ''}`);
+    log(`Outcome: ${result.outcome}${result.evmTxHash ? ` — EVM tx ${result.evmTxHash}` : ''}${result.contractAddress ? ` — contract ${result.contractAddress}` : ''}`);
     if (result.contractAddress) $('recheck-address').value = result.contractAddress;
   } catch (err) {
-    log(`Stopped before anything was sent: ${err.message}`);
+    log(broadcast ? `Stopped after the transaction was sent — keep the record above: ${err.message}` : `Stopped before anything was sent: ${err.message}`);
   } finally {
     prepared = null; // one deploy per Connect: a second deploy needs a fresh Connect and a fresh tick
     $('confirm').checked = false;
@@ -121,8 +122,11 @@ $('recheck').addEventListener('click', async () => {
     const sha = await sha256Hex(lfNormalise(source));
     const code = await verifyCode(client, address, sha);
     log(`Code at ${address}: sha256 ${code.sha256 ?? '(unreadable)'} — ${code.matches ? 'MATCHES the source' : 'does not match'}${code.error ? ` (${code.error})` : ''}`);
-    if (record && record.contractAddress === address) {
-      setRecord({ ...record, code, outcome: code.matches ? 'DEPLOYED_VERIFIED' : record.outcome, recheckedAt: new Date().toISOString() });
+    // Only a code outcome can change here: the address in the record already passed the status, execution and
+    // recipient checks. Any other outcome (failed, not decided) stays as it was.
+    const codeOutcome = ['CODE_UNREADABLE', 'CODE_MISMATCH', 'DEPLOYED_VERIFIED'].includes(record?.outcome);
+    if (codeOutcome && record.contractAddress?.toLowerCase() === address.toLowerCase()) {
+      setRecord({ ...record, code, outcome: code.matches ? 'DEPLOYED_VERIFIED' : (code.sha256 ? 'CODE_MISMATCH' : 'CODE_UNREADABLE'), recheckedAt: new Date().toISOString() });
     }
   } catch (err) {
     log(`Re-check stopped: ${err.message}`);

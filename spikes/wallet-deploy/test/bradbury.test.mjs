@@ -26,13 +26,14 @@ test('every pinned Bradbury fact equals the library\'s testnetBradbury', () => {
   assert.deepEqual(testnetBradbury.rpcUrls.default.http, [BRADBURY.rpcUrl]);
   assert.equal(testnetBradbury.blockExplorers.default.url, BRADBURY.explorerUrl);
   assert.equal(testnetBradbury.consensusMainContract.address, BRADBURY.consensusMainContract);
+  assert.equal(testnetBradbury.consensusDataContract.address, BRADBURY.consensusDataContract);
   assert.deepEqual({ ...testnetBradbury.nativeCurrency }, { ...BRADBURY.nativeCurrency });
   assert.equal(testnetBradbury.testnet, true);
 });
 
 test('assertBradburyChain accepts testnetBradbury and lists what it checked', () => {
   const checks = assertBradburyChain(testnetBradbury);
-  assert.equal(checks.length, 5);
+  assert.equal(checks.length, 6);
 });
 
 test('assertBradburyChain refuses Asimov although it shares chain id 4221 (A1)', () => {
@@ -52,6 +53,7 @@ test('assertBradburyChain refuses Studionet, localnet, nothing, and a chain clai
     twoRpcs: { ...testnetBradbury, rpcUrls: { default: { http: [BRADBURY.rpcUrl, 'https://evil.example'] } } },
     consensus: { ...testnetBradbury, consensusMainContract: { ...testnetBradbury.consensusMainContract, address: testnetAsimov.consensusMainContract.address } },
     noConsensus: { ...testnetBradbury, consensusMainContract: undefined },
+    dataContract: { ...testnetBradbury, consensusDataContract: { ...testnetBradbury.consensusDataContract, address: testnetAsimov.consensusDataContract.address } },
   };
   for (const [name, chain] of Object.entries(mutants)) {
     assert.throws(() => assertBradburyChain(chain), (e) => e.code === 'WRONG_CONFIG', name);

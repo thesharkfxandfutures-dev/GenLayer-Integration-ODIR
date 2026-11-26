@@ -17,6 +17,8 @@ export const BRADBURY = Object.freeze({
   rpcUrl: 'https://rpc-bradbury.genlayer.com',
   explorerUrl: 'https://explorer-bradbury.genlayer.com/',
   consensusMainContract: '0x0112Bf6e83497965A5fdD6Dad1E447a6E004271D',
+  /** Where the library reads a transaction's status and receipt from. */
+  consensusDataContract: '0x85D7bf947A512Fc640C75327A780c90847267697',
   nativeCurrency: Object.freeze({ name: 'GEN Token', symbol: 'GEN', decimals: 18 }),
   faucetUrl: 'https://testnet-faucet.genlayer.foundation',
 });
@@ -66,6 +68,9 @@ export function assertBradburyChain(chain) {
   if (!sameAddress(chain.consensusMainContract?.address, BRADBURY.consensusMainContract)) {
     problems.push(`consensus main contract is ${chain.consensusMainContract?.address}, not Bradbury's ${BRADBURY.consensusMainContract}`);
   }
+  if (!sameAddress(chain.consensusDataContract?.address, BRADBURY.consensusDataContract)) {
+    problems.push(`consensus data contract is ${chain.consensusDataContract?.address}, not Bradbury's ${BRADBURY.consensusDataContract}`);
+  }
   if (problems.length) throw new DeployError('WRONG_CONFIG', `not testnet Bradbury — ${problems.join('; ')}`);
-  return ['chain id 4221', 'testnet', 'not Studio', `RPC ${BRADBURY.rpcUrl}`, `consensus ${BRADBURY.consensusMainContract}`];
+  return ['chain id 4221', 'testnet', 'not Studio', `RPC ${BRADBURY.rpcUrl}`, `consensus ${BRADBURY.consensusMainContract}`, `consensus data ${BRADBURY.consensusDataContract}`];
 }

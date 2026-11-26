@@ -3,10 +3,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ADD_CHAIN_PARAMS } from '../src/bradbury.js';
 import {
-  checkSameChain, ensureWalletOnBradbury, isRejection, lfNormalise, requestAccount, sha256Hex, verifyCode,
+  checkSameChain, ensureWalletOnBradbury, isRejection, lfNormalise, oneSignatureProvider, requestAccount, sha256Hex, verifyCode,
 } from '../src/core.js';
 import {
-  ACCOUNT, CONTRACT, SOURCE, mockClient, mockRpc, mockWallet, rejection, wrappedRejection,
+  ACCOUNT, CONTRACT, EVM_HASH, SOURCE, mockClient, mockRpc, mockWallet, rejection, wrappedRejection,
 } from './helpers.mjs';
 
 const methods = (w) => w.calls.map((c) => c.method);
@@ -99,8 +99,13 @@ test('switch, add or second switch rejected → REJECTED; other failures named',
     [{ wallet_switchEthereumChain: () => { throw new Error('busy'); } }, ['0x1', '0x107d'], 'SWITCH_FAILED'],
   ];
   for (const [handlers, known, code] of cases) {
-    await assert.rejects(ensureWalletOnBradbury(mockWallet({ chainId: '0x1', known, handlers })), (e) => e.code === code, code);
+    const w = mockWallet({ chainId: '0x1', known, handlers });
+    await assert.rejects(ensureWalletOnBradbury(w), (e) => e.code === code, code);
+    if (code === 'SWITCH_FAILED') assert.ok(!methods(w).includes('wallet_addEthereumChain'), 'a switch error that is not 4902 never adds a network');
   }
+  const w32603 = mockWallet({ chainId: '0x1', handlers: { wallet_switchEthereumChain: () => { throw Object.assign(new Error('Internal error'), { code: -32603 }); } } });
+  await assert.rejects(ensureWalletOnBradbury(w32603), (e) => e.code === 'SWITCH_FAILED');
+  assert.ok(!methods(w32603).includes('wallet_addEthereumChain'));
   let n = 0;
   const secondRejected = mockWallet({
     chainId: '0x1', known: ['0x1'],
@@ -158,4 +163,33 @@ test('verifyCode: raw match, LF-only match, unreadable, bad address', async () =
   assert.equal((await verifyCode(mockClient({ code: async () => null }), CONTRACT, sha)).sha256, null);
   await assert.rejects(verifyCode(mockClient(), `0x${'0'.repeat(40)}`, sha), (e) => e.code === 'NO_ADDRESS');
   await assert.rejects(verifyCode(mockClient(), 'x', sha), (e) => e.code === 'NO_ADDRESS');
+});
+
+test('oneSignatureProvider: one eth_sendTransaction, then refusal; no other signing; no Snaps; reads pass through', async () => {
+  const w = mockWallet({ handlers: { eth_sendTransaction: () => EVM_HASH, personal_sign: () => '0xsig' } });
+  const g = oneSignatureProvider(w);
+  assert.equal(await g.request({ method: 'eth_chainId' }), '0x107d');
+  assert.equal(await g.request({ method: 'eth_sendTransaction', params: [{}] }), EVM_HASH);
+  assert.equal(g.state.evmTxHash, EVM_HASH);
+  await assert.rejects(g.request({ method: 'eth_sendTransaction', params: [{}] }), (e) => e.code === 'SECOND_SIGNATURE_REFUSED');
+  for (const method of ['eth_signTransaction', 'personal_sign', 'eth_sign', 'eth_signTypedData_v4', 'eth_signTypedData']) {
+    await assert.rejects(g.request({ method, params: [] }), (e) => e.code === 'SIGNING_REFUSED', method);
+  }
+  for (const method of ['wallet_requestSnaps', 'wallet_getSnaps', 'wallet_invokeSnap']) {
+    await assert.rejects(g.request({ method, params: {} }), (e) => e.code === 'SNAP_REFUSED', method);
+  }
+  assert.equal(w.calls.filter((x) => x.method === 'eth_sendTransaction').length, 1, 'the wallet saw exactly one send');
+  assert.ok(!w.calls.some((x) => /sign|Snap/.test(x.method)), 'refused methods never reach the wallet');
+});
+
+test('oneSignatureProvider: a failed or rejected first send still uses up the one signature', async () => {
+  for (const fail of [() => { throw rejection(); }, () => { throw new Error('could not decode result data'); }]) {
+    const g = oneSignatureProvider(mockWallet({ handlers: { eth_sendTransaction: fail } }));
+    await assert.rejects(g.request({ method: 'eth_sendTransaction', params: [{}] }));
+    assert.equal(g.state.evmTxHash, null);
+    await assert.rejects(g.request({ method: 'eth_sendTransaction', params: [{}] }), (e) => e.code === 'SECOND_SIGNATURE_REFUSED');
+  }
+  const junk = oneSignatureProvider(mockWallet({ handlers: { eth_sendTransaction: () => 'not-a-hash' } }));
+  await junk.request({ method: 'eth_sendTransaction', params: [{}] });
+  assert.equal(junk.state.evmTxHash, null, 'only a 32-byte hash counts as broadcast');
 });

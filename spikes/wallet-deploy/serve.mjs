@@ -1,5 +1,5 @@
 // Serves the spike on http://127.0.0.1:5173 (MetaMask does not inject into file:// pages).
-// Loopback only, four files only, no directory listing, no other path.
+// Loopback only: three files on four routes (/ is index.html), no directory listing, no other path.
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';

@@ -9,7 +9,9 @@
 //                      signature, wait for consensus, address from the receipt's recipient, code read back.
 //
 // Never: client.connect() (it installs a MetaMask Snap and swaps client.chain), a private key, mainnet,
-// a second transaction, or a retry that signs again.
+// a second transaction, or a retry that signs again. genlayer-js 1.1.8 itself retries a failed send with a second
+// calldata encoding (_sendTransaction's ABI-mismatch fallback); the client only ever sees oneSignatureProvider(),
+// which lets exactly one eth_sendTransaction through and refuses every other signing method.
 
 import {
   ADD_CHAIN_PARAMS, BRADBURY, DeployError, EXPECTED_SOURCE_SHA256, GENLAYER_JS_VERSION, INITIAL_STORAGE,
@@ -55,7 +57,9 @@ const errorCodes = (err) => {
   findInErrorChain(err, (e) => { codes.push(e.code, e.data?.originalError?.code); return undefined; });
   return codes.filter((c) => c !== undefined);
 };
-const errorText = (err) => findInErrorChain(err, (e) => e.shortMessage || e.message) || String(err);
+// Our own refusals (a DeployError somewhere in viem's wrapping) say exactly what happened; prefer them.
+const errorText = (err) => findInErrorChain(err, (e) => (e.name === 'DeployError' ? e.message : undefined))
+  ?? findInErrorChain(err, (e) => e.shortMessage || e.message) ?? String(err);
 /** EIP-1193 4001, or viem's UserRejectedRequestError anywhere in the chain. */
 export const isRejection = (err) =>
   errorCodes(err).includes(4001) || findInErrorChain(err, (e) => (e.name === 'UserRejectedRequestError' ? true : undefined)) === true;
@@ -64,6 +68,36 @@ const isUnknownChain = (err) => errorCodes(err).includes(4902);
 const toInt = (hex) => (typeof hex === 'string' && /^0x[0-9a-fA-F]+$/.test(hex) ? parseInt(hex, 16) : NaN);
 const normChainId = (hex) => (Number.isFinite(toInt(hex)) ? `0x${toInt(hex).toString(16)}` : String(hex));
 const sameAddress = (a, b) => typeof a === 'string' && typeof b === 'string' && a.toLowerCase() === b.toLowerCase();
+
+const SIGNING_METHODS = new Set(['eth_sendTransaction', 'eth_signTransaction', 'eth_sign', 'personal_sign', 'eth_signTypedData', 'eth_signTypedData_v3', 'eth_signTypedData_v4']);
+const SNAP_METHODS = /^wallet_(requestSnaps|getSnaps|invokeSnap)$/;
+
+/**
+ * The wallet as the genlayer-js client sees it: one eth_sendTransaction, ever; no other signing method; no Snaps.
+ * Everything else is passed through. Keeps the EVM hash the wallet returns, so a failure after the broadcast is
+ * still recorded (gas was spent).
+ */
+export function oneSignatureProvider(provider) {
+  const state = { sendAttempts: 0, evmTxHash: null };
+  return {
+    state,
+    async request(args) {
+      const method = args?.method;
+      if (SNAP_METHODS.test(method ?? '')) throw new DeployError('SNAP_REFUSED', `${method} is never part of this deploy`);
+      if (SIGNING_METHODS.has(method)) {
+        if (method !== 'eth_sendTransaction') throw new DeployError('SIGNING_REFUSED', `${method} is never part of this deploy`);
+        if (state.sendAttempts >= 1) {
+          throw new DeployError('SECOND_SIGNATURE_REFUSED', 'the library asked for a second signature (its fallback encoding); refused — one signature per Connect');
+        }
+        state.sendAttempts += 1;
+        const hash = await provider.request(args);
+        if (typeof hash === 'string' && TX_ID.test(hash)) state.evmTxHash = hash;
+        return hash;
+      }
+      return provider.request(args);
+    },
+  };
+}
 
 /** eth_requestAccounts → the first account. */
 export async function requestAccount(provider) {
@@ -153,17 +187,18 @@ export async function checkSameChain(provider, rpcRequest, { lag = 3 } = {}) {
  * spends gas, emits no NewTransaction log and deploys nothing. So: no code there, no signature.
  * (26 Nov 2026, OBSERVED: genlayer-js 1.1.8's Bradbury addresses have no code on chain; see the B1 record.)
  */
-export async function checkConsensusDeployed(rpcRequest, address = BRADBURY.consensusMainContract) {
+export async function checkConsensusDeployed(rpcRequest, address = BRADBURY.consensusMainContract, role = 'consensus') {
+  if (!ADDRESS.test(address ?? '')) throw new DeployError('CONSENSUS_UNVERIFIED', `no ${role} contract address`);
   let code;
   try {
     code = await rpcRequest('eth_getCode', [address, 'latest']);
   } catch (err) {
-    throw new DeployError('CONSENSUS_UNVERIFIED', `could not read the code at the consensus contract ${address}: ${errorText(err)}`);
+    throw new DeployError('CONSENSUS_UNVERIFIED', `could not read the code at the ${role} contract ${address}: ${errorText(err)}`);
   }
   if (typeof code !== 'string' || !/^0x[0-9a-fA-F]*$/.test(code)) throw new DeployError('CONSENSUS_UNVERIFIED', `unreadable code at ${address}`);
   const bytes = (code.length - 2) / 2;
   if (bytes === 0) {
-    throw new DeployError('CONSENSUS_NOT_DEPLOYED', `Bradbury's consensus contract ${address} (genlayer-js ${GENLAYER_JS_VERSION}) has no code on chain: the library's Bradbury addresses are out of date. A deploy would spend gas and deploy nothing. Nothing was signed.`);
+    throw new DeployError('CONSENSUS_NOT_DEPLOYED', `Bradbury's ${role} contract ${address} (genlayer-js ${GENLAYER_JS_VERSION}) has no code on chain: the library's Bradbury addresses are out of date. A deploy would spend gas and deploy nothing. Nothing was signed.`);
   }
   return { address, codeBytes: bytes };
 }
@@ -179,7 +214,11 @@ export async function prepare({ provider, rpcRequest, chain, source, expectedSha
   const account = await requestAccount(provider);
   const wallet = await ensureWalletOnBradbury(provider);
   const sameChain = await checkSameChain(provider, rpcRequest);
-  const consensus = await checkConsensusDeployed(rpcRequest, chain.consensusMainContract.address);
+  // Both: the deploy goes to the main contract, and its status and receipt are read from the data contract.
+  const consensus = {
+    main: await checkConsensusDeployed(rpcRequest, chain.consensusMainContract.address, 'consensus'),
+    data: await checkConsensusDeployed(rpcRequest, chain.consensusDataContract?.address, 'consensus data'),
+  };
   return Object.freeze({
     code, sourceSha256, bytes: new TextEncoder().encode(code).length, account, wallet, sameChain, consensus, chainChecks, preparedAt: now(),
   });
@@ -200,7 +239,7 @@ function baseRecord(prepared) {
     wallet: { switched: prepared.wallet.switched, added: prepared.wallet.added },
     sameChain: prepared.sameChain,
     consensus: prepared.consensus,
-    txId: null, statusName: null, executionResult: null, contractAddress: null,
+    evmTxHash: null, txId: null, statusName: null, executionResult: null, contractAddress: null,
     code: null,
     preparedAt: prepared.preparedAt, sentAt: null, decidedAt: null, finishedAt: null,
     note: 'Paste into the B1 ODIR record. Grade OBSERVED only what this page and the explorer showed.',
@@ -223,8 +262,8 @@ export async function verifyCode(client, address, expectedSha256) {
 }
 
 /**
- * Phase 2: one signature. Throws only before a transaction exists (nothing to record on chain); once the wallet
- * has sent it, always returns a record with an outcome, so a slow or failed deploy is still written down.
+ * Phase 2: one signature. Throws only when the wallet broadcast nothing; once it has broadcast (an EVM hash came
+ * back), always returns a record with an outcome, so a slow or failed deploy is still written down.
  */
 export async function deployAndVerify({
   prepared, provider, makeClient, chain, confirmed, wait = DEFAULT_WAIT, onStep = () => {}, now = () => new Date().toISOString(),
@@ -239,24 +278,30 @@ export async function deployAndVerify({
     throw new DeployError('ACCOUNT_CHANGED', 'the wallet account changed; press Connect again');
   }
 
-  const client = makeClient({ chain, account: prepared.account, provider });
+  const guarded = oneSignatureProvider(provider);
+  const client = makeClient({ chain, account: prepared.account, provider: guarded });
   if (client?.chain && client.chain !== chain) assertBradburyChain(client.chain);
   const record = baseRecord(prepared);
+  const finish = (outcome, extra = {}) => Object.assign(record, extra, { outcome, finishedAt: now() });
   onStep('signing', record);
 
-  let txId;
+  let txId; let sendError = null;
   try {
     txId = await client.deployContract({ code: prepared.code, args: [INITIAL_STORAGE], leaderOnly: false });
   } catch (err) {
-    if (isRejection(err)) throw new DeployError('REJECTED', 'the deploy signature was rejected in the wallet; nothing was sent');
-    throw new DeployError('SEND_FAILED', errorText(err));
+    sendError = err;
   }
-  if (!TX_ID.test(txId ?? '')) throw new DeployError('SEND_FAILED', `the client returned no transaction id (${txId})`);
+  record.evmTxHash = guarded.state.evmTxHash;
+  if (sendError || !TX_ID.test(txId ?? '')) {
+    const reason = sendError ? errorText(sendError) : `the client returned no transaction id (${txId})`;
+    // The wallet broadcast it (gas spent) but no GenLayer transaction came of it: write that down, do not throw.
+    if (record.evmTxHash) return finish('SENT_NOT_PROCESSED', { sentAt: now(), error: reason });
+    if (sendError && isRejection(sendError)) throw new DeployError('REJECTED', 'the deploy signature was rejected in the wallet; nothing was sent');
+    throw new DeployError('SEND_FAILED', `${reason}; nothing was broadcast`);
+  }
   record.txId = txId;
   record.sentAt = now();
   onStep('sent', record);
-
-  const finish = (outcome, extra = {}) => Object.assign(record, extra, { outcome, finishedAt: now() });
 
   let receipt;
   try {

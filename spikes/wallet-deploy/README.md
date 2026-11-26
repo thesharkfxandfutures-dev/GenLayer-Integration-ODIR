@@ -5,10 +5,10 @@ Bradbury** from the owner's MetaMask. Not part of SnapLink. **Testnet only.** Th
 signs anything itself, and sends at most one transaction per Connect, after the owner ticks a confirmation.
 
 > **Status on 26 Nov 2026: the page will refuse to deploy.** genlayer-js 1.1.8 (the version the plan pins)
-> carries Bradbury contract addresses that have **no code on chain** today (OBSERVED: `eth_getCode` → 0 bytes
-> for its consensus, data, staking and fee contracts; genlayer-js 2.1.0's addresses have code). A deploy would
-> spend gas, call an empty address and deploy nothing, so `Connect` stops at `CONSENSUS_NOT_DEPLOYED` before any
-> signature. Choosing the genlayer-js version for Bradbury is the owner's call (blocker B-B1-1 in the
+> carries Bradbury contract addresses that have **no code on chain** today (OBSERVED live on 26 Nov, recorded in the
+> SnapLink ODIR record for B1: `eth_getCode` → 0 bytes for its consensus main, data, staking and fee contracts;
+> genlayer-js 2.1.0's addresses have code). A deploy would spend gas, call an empty address and deploy nothing,
+> so `Connect` stops at `CONSENSUS_NOT_DEPLOYED` before any signature. Choosing the genlayer-js version for Bradbury is the owner's call (blocker B-B1-1 in the
 > SnapLink autopilot record). Moving to 2.x touches A1 and C3 as well; see "Moving to another genlayer-js".
 
 ## Run it
@@ -31,20 +31,26 @@ the page never asks for funds.
 2. **Source hash.** The contract source is bundled into `dist/app.js` at build time. The page LF-normalises it,
    shows its SHA-256 and compares it with the pinned hash (`99ad9c8f…bff294`). Any other bytes: no deploy.
 3. **Connect (no signature).** `eth_requestAccounts`; `wallet_switchEthereumChain` to `0x107d`, adding Bradbury
-   with `wallet_addEthereumChain` if the wallet does not know it (4902); then two checks that a chain id cannot fake:
+   with `wallet_addEthereumChain` if the wallet does not know it (4902; any other switch error stops); then two
+   checks that a chain id cannot fake:
    - the wallet's chain has the **same block hash** at a recent height as Bradbury's RPC;
-   - the **consensus contract has code** on chain.
+   - the **consensus main and data contracts have code** on chain (the deploy goes to the first; status and receipt
+     are read from the second).
    It never calls `client.connect()` (in 1.1.8 that installs a MetaMask Snap and swaps `client.chain`).
 4. **Deploy (one signature).** Only after the tick. Re-checks the wallet's chain and account, builds
-   `createClient({ chain: testnetBradbury, account, provider: window.ethereum })` and calls `deployContract`
-   once. A rejected signature stops there: nothing sent, no retry.
+   `createClient({ chain: testnetBradbury, account, provider })` and calls `deployContract` once. The `provider` is
+   `window.ethereum` behind a guard that lets exactly **one** `eth_sendTransaction` through and refuses every other
+   signing method and any Snap: genlayer-js 1.1.8 would otherwise retry some failed sends with a second calldata
+   encoding, which is a second MetaMask prompt. A rejected signature stops there: nothing sent, no retry.
 5. **Verify.** Waits up to 20 minutes for consensus. Requires `ACCEPTED`/`FINALIZED` and
    `FINISHED_WITH_RETURN`; takes the contract address **only** from the receipt's `recipient`; reads the code
    back with `gen_getContractCode` and compares its SHA-256 with the source hash.
 6. **Record.** A JSON record (`odir.b1-wallet-deploy-record.v1`) with the network, account, source hash, block-hash
-   check, consensus code size, transaction id, status, execution result, address and code hash. Copy it into the
-   B1 ODIR record. A slow or failed deploy still produces a record (`NOT_DECIDED`, `FAILED_CONSENSUS`,
+   check, consensus code sizes, EVM transaction hash, GenLayer transaction id, status, execution result, address and
+   code hash. Copy it into the B1 ODIR record. Anything that fails after the wallet broadcast still produces a record
+   (`SENT_NOT_PROCESSED` — gas spent, no GenLayer transaction —, `NOT_DECIDED`, `FAILED_CONSENSUS`,
    `FAILED_EXECUTION`, `NO_ADDRESS`, `CODE_UNREADABLE`, `CODE_MISMATCH`); only `DEPLOYED_VERIFIED` meets the plan.
+   `NOT_DECIDED` keeps the transaction id: check it on the explorer or re-check the code at the address later.
 
 ## Acceptance (plan, B1)
 
@@ -62,8 +68,8 @@ your signature; faucet funding stays manual.
 | `src/main.js` | browser glue: DOM (text only), `window.ethereum`, `fetch` to Bradbury's RPC |
 | `index.html`, `styles.css` | the page; CSP allows only itself and `rpc-bradbury.genlayer.com`; no inline script |
 | `build.mjs` | esbuild, not minified, reproducible; prints the bundle's SHA-256 |
-| `serve.mjs` | loopback-only server for four files |
-| `test/` | 56 tests: guard, helpers, every outcome of the flow, the real genlayer-js 1.1.8 client against a mock wallet and a stubbed RPC, static checks, reproducible bundle |
+| `serve.mjs` | loopback-only server: three files on four routes |
+| `test/` | tests: guard, helpers, every outcome of the flow, the real genlayer-js 1.1.8 client against a mock wallet and a stubbed RPC, static checks, reproducible bundle |
 
 ## Moving to another genlayer-js
 
