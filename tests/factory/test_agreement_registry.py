@@ -132,7 +132,7 @@ def test_relayer_appends_a_record_and_the_views_return_it(direct_vm, direct_depl
     assert contract.get_agreement_id(0) == AGREEMENT
     assert record(contract) == {
         "agreement_id": AGREEMENT,
-        "terms_hash": TERMS,
+        "terms_hash": "sha256:" + TERMS,   # stored the way A3 and SnapLink write a terms hash
         "role_keys": ["provider:photographer"],
         "base": BASE,
         "template_version": TEMPLATE,
@@ -151,10 +151,10 @@ def test_takes_the_a3_terms_hash_and_the_c4_seal_as_snaplink_writes_them(direct_
     with direct_vm.prank(direct_alice):
         append(contract, agreement="sha256:" + AGREEMENT, terms=A3_GOLDEN_TERMS, seal=SEAL)
     stored = record(contract)
-    # Stored bare; "sha256:" + the stored value is exactly the A3 spelling, so D4 can compare it.
-    assert "sha256:" + stored["terms_hash"] == A3_GOLDEN_TERMS
-    assert stored["seal_hash"] == SEAL
-    assert stored["agreement_id"] == AGREEMENT
+    # Each hash is stored in the spelling its SnapLink source writes, so D4 compares with plain equality:
+    assert stored["terms_hash"] == A3_GOLDEN_TERMS          # A3 / C4 evidence: sha256:<hex>
+    assert stored["seal_hash"] == SEAL                      # C4 agreementSealHash: bare <hex>
+    assert stored["agreement_id"] == AGREEMENT              # bare <hex>, like C4's agreement_ref
     # One hash, every spelling: a later append of the same id in another spelling is a duplicate.
     with direct_vm.prank(direct_alice):
         refused(direct_vm, ERR_DUPLICATE_ID, lambda: append(contract, agreement="0x" + AGREEMENT))
@@ -372,7 +372,8 @@ def test_refuses_a_move_on_an_unknown_agreement_id(direct_vm, direct_deploy, dir
 
 BAD_HASHES = ["", "abc", AGREEMENT[:63], AGREEMENT + "0", "0x" + AGREEMENT[:62], "g" + AGREEMENT[1:],
               "0x0x" + AGREEMENT[4:], "sha256:0x" + AGREEMENT, "0xsha256:" + AGREEMENT, "sha256" + AGREEMENT,
-              "sha256:" + AGREEMENT[:63], "sha-256:" + AGREEMENT, "sha256:sha256:" + AGREEMENT]
+              "sha256:" + AGREEMENT[:63], "sha-256:" + AGREEMENT, "sha256:sha256:" + AGREEMENT,
+              " " + AGREEMENT, AGREEMENT + "\n", "sha256: " + AGREEMENT, "0x " + AGREEMENT]  # no spaces (A3/C4 regexes)
 
 
 @pytest.mark.parametrize("bad", BAD_HASHES)
@@ -386,7 +387,8 @@ def test_refuses_a_bad_agreement_id(direct_vm, direct_deploy, direct_owner, dire
 
 
 @pytest.mark.parametrize("bad", ["", TERMS[:63], TERMS + "a", "z" * 64, "0x" + TERMS[2:],
-                                 "sha256:" + TERMS[:63], "sha256:0x" + TERMS, "sha256: " + TERMS])
+                                 "sha256:" + TERMS[:63], "sha256:0x" + TERMS, "sha256: " + TERMS,
+                                 " sha256:" + TERMS, "sha256:" + TERMS + " "])
 def test_refuses_a_bad_terms_hash(direct_vm, direct_deploy, direct_owner, direct_alice, bad):
     contract = deploy(direct_vm, direct_deploy, direct_owner, direct_alice)
     with direct_vm.prank(direct_alice):
@@ -395,7 +397,7 @@ def test_refuses_a_bad_terms_hash(direct_vm, direct_deploy, direct_owner, direct
 
 
 @pytest.mark.parametrize("bad", [" ", "abc", SEAL[:63], SEAL + "0", "z" * 64, "sha256:0x" + SEAL,
-                                 "sha256:" + SEAL[:63], "0x" + SEAL[:62]])
+                                 "sha256:" + SEAL[:63], "0x" + SEAL[:62], " " + SEAL, SEAL + "\t"])
 def test_refuses_a_bad_seal_hash(direct_vm, direct_deploy, direct_owner, direct_alice, bad):
     contract = deploy(direct_vm, direct_deploy, direct_owner, direct_alice)
     with direct_vm.prank(direct_alice):

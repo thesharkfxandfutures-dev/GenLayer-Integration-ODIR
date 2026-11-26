@@ -173,3 +173,59 @@ Notes from the verifier (not defects): the doc block sits after `from genlayer i
 as `__doc__` (the constructor is still documented at the top of the file; lint accepts it). `base` is free printable
 text, so "public data only" for it is enforced by callers. Not reproduced by the verifier: the Studionet deploy
 simulation above (not in its brief).
+
+## Slice B2 alignment — 26 Nov 2026 (ODIR contracts autopilot, run 9)
+
+A separate builder (the ODIR contracts autopilot, not the factory) reviewed this draft against what the
+other slices now produce, before the first deploy, on branch `odir/b2-agreement-registry-review-2026-11-26`
+(stacked on this PR's head `ddb95c4`). The draft above stays as it was verified; this section records what
+changed and why. Nothing was signed, deployed or sent.
+
+### Why it changed
+
+| Gap in the draft | Where the other slice stands | Change |
+|---|---|---|
+| A terms hash written `sha256:<hex>` was refused (`BAD_TERMS_HASH`) | A3's resolver and SnapLink's C4 evidence both write `sha256:<hex>` | hashes accept one `sha256:` or `0x` prefix (or none), any case, no spaces; `terms_hash` is stored as `sha256:<hex>`, the seal and the id as bare hex, so SnapLink compares with plain equality |
+| No place for the e-sign seal | C4: `agreementSealHash` "is what slice D4 writes to GenLayer" | new `seal_hash`: given at append, or recorded once on a forward `move_state`; never changed after (`SEAL_ALREADY_SET`, `BAD_SEAL_HASH`) |
+| `base` was any printable text, so names could reach the chain (verifier note above) | A3 base keys `P2P P2B B2P B2B STAFF` | `base` must be one of them |
+| Role keys were up to 16 × 128 free characters | A3 `roles`: engager and provider, role key `^[a-z][a-z0-9_]{1,40}$`, either may be null | `""` or 1–2 `slot:role` keys, each slot once, stored engager first |
+| Template version was any 32 characters | A4 release tag `templates-vX.Y.Z` | must be that tag (no leading zeros, ≤ 32 characters) |
+
+Interface change: `append_agreement(…, outcome_code, seal_hash)` and `move_state(agreement_id, new_state,
+outcome_code, seal_hash)` each gained a last argument (`""` = no seal / keep the seal). `move_state` also
+returns `seal_hash`; the stored record has a `seal_hash` key.
+
+### Output
+
+| File | sha256 |
+|---|---|
+| `contracts/factory/agreement_registry.py` | `aa6528e9465d080db50c2a0d927ee67ca891e3c3f76c73fa05cb47d144fc6bf6` |
+| `tests/factory/test_agreement_registry.py` | `baaba845d89958ed9ed92397f729cdd20b310e26adf7033cef05ab6e0be3f536` |
+
+### Claims
+
+| Claim | Grade | Evidence |
+|---|---|---|
+| Lint: no errors | OBSERVED | `genlayer_lint_contract` (genskill connector) on the full final source: `ok: true`, 0 errors, 0 warnings, 0 info. Source pasted into the tool call; byte identity not machine-checked |
+| Tests pass: 137 passed | OBSERVED | `python3 -m pytest tests/factory/test_agreement_registry.py -q` → `137 passed in 2.99s`; Python 3.13.18, pytest 9.1.1, genlayer-test 0.29.2 direct mode. Baseline on `ddb95c4` before the change: `61 passed` |
+| A real A3 terms hash is accepted and read back equal | OBSERVED | test uses `terms_hash` of A3's golden `agreement.photographer.provider.B2P.EW.json` at `dcb91be` (`sha256:780d49e0…33d5`) |
+| The test seal equals SnapLink's own `agreementSealHash` | OBSERVED | SnapLink `base44/shared/esign/esignEvidence.js` (file sha256 `f7eb54a4…dd45`) run with node on the integration branch for evidence hashes of `"evidence engager"` / `"evidence provider"` → `3cad22ef…bf9b`, the test's `SEAL` |
+| The tests can fail | OBSERVED | 30 mutants planted one at a time, file restored after (sha256 above): 29 caught; 1 survivor equivalent (`MAX_ROLE_KEYS = 3`: a third key must repeat a slot, which is refused anyway) |
+| Independent verifier | OBSERVED | a separate agent, fresh clone, judged from code + tests + spec without this record: **PASS WITH FINDINGS**, no blockers; `129 passed`; 24 own mutants, 22 caught, 2 equivalent. Should-fix: stored bare `terms_hash` never string-equals SnapLink's `sha256:<hex>` → **fixed** (stored with the prefix, test + mutant). Nit: surrounding whitespace was trimmed → **fixed** (refused, tests + mutant). Nits kept: no seal required at SIGNED/ANCHORED (D4 decides); no owner transfer; docstring after the import |
+| Constructor unchanged | OBSERVED | `__init__` identical to `ddb95c4` (`git diff`), so the earlier Studionet deploy simulation still covers it; not re-run |
+| Runs on GenVM; deploy, finality, a write on a network | NOT_RUN | until the owner deploys (testnet only) |
+
+### How SnapLink is expected to use it (for D2/D4; their slices decide)
+
+| SnapLink (D2 state) | Call |
+|---|---|
+| Both parties have signed (ACCEPTED → PENDING_ANCHOR) | `append_agreement(id, terms_hash, roles, base, tag, "SIGNED", "", seal)`; the receipt moves SnapLink to ANCHORED |
+| ACTIVE | optional `move_state(id, "ANCHORED", "", "")` |
+| COMPLETED / CANCELLED / TERMINATED | `move_state(id, "CLOSED", "<that word>", "")` |
+| VARIED | the old version: `move_state(id, "CLOSED", "VARIED", "")`; the new version is a new record with its own id |
+
+Open for D2: how the agreement id is derived (it must differ per version, since terms change on a
+variation); D4 may want a rule that SIGNED or later carries a seal.
+
+VERDICT: ALIGNED ON BRANCH — lint clean, 137 direct-mode tests, 29/30 own mutants (1 equivalent),
+independent verifier's should-fix fixed; not merged, not deployed.

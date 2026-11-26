@@ -28,9 +28,13 @@ States (fixed, ordered, forward-only; the owner may want to change this list):
   the outcome code says how the agreement ended.
 
 Hashes (agreement id, terms hash, seal hash) are sha256: 64 hex characters,
-bare or with one 0x or sha256: prefix, any case. They are stored lowercase and
-bare, so every spelling of one hash is the same hash. sha256:<hex> is how the
-ODIR resolver (slice A3) and SnapLink's e-sign module (slice C4) write them.
+bare or with one 0x or sha256: prefix, any case, no spaces. Every spelling of
+one hash is the same hash. Each is stored lowercase in the spelling its
+SnapLink source writes, so SnapLink can compare a stored value to its own
+with plain string equality:
+  terms_hash    sha256:<hex>  (the ODIR resolver's terms_hash, slice A3)
+  seal_hash     <hex>         (SnapLink agreementSealHash, slice C4)
+  agreement_id  <hex>         (like C4's agreement_ref)
 
 Write methods:
   set_relayer(relayer)             owner only. relayer is 0x + 40 hex characters.
@@ -40,7 +44,7 @@ Write methods:
                    template_version, state, outcome_code, seal_hash)
                                    owner or relayer.
     agreement_id      sha256 of the agreement id (see Hashes)
-    terms_hash        sha256 terms hash of the resolved agreement (A3 terms_hash)
+    terms_hash        the resolved agreement's terms hash (A3 terms_hash)
     role_keys         "" (a base-only agreement) or 1 to 2 comma-separated
                       slot:role keys from the agreement's roles: slot is
                       engager or provider, each at most once; role is a-z
@@ -133,7 +137,7 @@ def _only_chars(text: str, allowed: str) -> bool:
 
 def _hash_or_empty(value: str) -> str:
     """Lowercase bare 64-hex form of a sha256 hash, or "" when malformed."""
-    text = value.strip().lower()
+    text = value.lower()
     if text.startswith(SHA256_PREFIX):
         text = text[len(SHA256_PREFIX):]
     elif text.startswith("0x"):
@@ -305,7 +309,7 @@ class AgreementRegistry(gl.Contract):
         index = len(self.ids)
         record = {
             "agreement_id": agreement,
-            "terms_hash": terms,
+            "terms_hash": SHA256_PREFIX + terms,
             "role_keys": keys,
             "base": base,
             "template_version": template_version,
