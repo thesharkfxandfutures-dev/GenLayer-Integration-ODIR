@@ -1,0 +1,22 @@
+{
+  "name": "odir-wallet-deploy-spike",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ODIR Brain slice B1: deploy a trivial storage contract to testnet Bradbury from the owner's MetaMask. Testnet only; the owner signs; no keys here.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\"",
+    "build": "node build.mjs",
+    "start": "node build.mjs && node serve.mjs"
+  },
+  "dependencies": {
+    "genlayer-js": "1.1.8"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  }
+}

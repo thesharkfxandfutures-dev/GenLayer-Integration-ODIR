@@ -1,0 +1,33 @@
+# CI for the wallet-deploy spike (ODIR Brain slice B1). Tests and a build of the page, from the lockfile.
+# Read-only token, no secrets, no network calls in the tests, no deploys: the owner deploys from MetaMask.
+name: wallet-deploy-spike
+
+on:
+  push:
+    paths: ['spikes/wallet-deploy/**', '.github/workflows/wallet-deploy-spike.yml']
+  pull_request:
+    paths: ['spikes/wallet-deploy/**', '.github/workflows/wallet-deploy-spike.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: spikes/wallet-deploy
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install from the lockfile
+        run: npm ci --no-audit --no-fund
+      - name: Tests
+        run: npm test
+      - name: Build the page
+        run: npm run build

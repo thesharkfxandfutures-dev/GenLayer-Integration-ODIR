@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Only this page's own files, and only Bradbury's RPC for network calls. No inline script. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://rpc-bradbury.genlayer.com; img-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>ODIR B1 · Wallet deploy spike (testnet Bradbury)</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Wallet deploy spike</h1>
+      <p class="banner">TESTNET BRADBURY ONLY · ODIR Brain slice B1 · not part of SnapLink · you sign, nothing else does</p>
+    </header>
+
+    <section>
+      <h2>1 · Network (pinned)</h2>
+      <dl>
+        <dt>Network</dt><dd id="net-name"></dd>
+        <dt>Chain id</dt><dd id="net-chain"></dd>
+        <dt>RPC</dt><dd id="net-rpc"></dd>
+        <dt>Transaction goes to</dt><dd><code id="net-consensus"></code> — Bradbury's consensus contract. MetaMask must show this same address as "to".</dd>
+        <dt>Explorer</dt><dd id="net-explorer"></dd>
+        <dt>genlayer-js</dt><dd id="lib-version"></dd>
+      </dl>
+    </section>
+
+    <section>
+      <h2>2 · Contract source</h2>
+      <dl>
+        <dt>SHA-256 (LF-normalised)</dt><dd><code id="source-sha"></code></dd>
+        <dt>Pinned SHA-256</dt><dd><code id="expected-sha"></code></dd>
+        <dt>Check</dt><dd id="sha-verdict"></dd>
+        <dt>Constructor argument</dt><dd><code id="ctor-arg"></code></dd>
+      </dl>
+      <details>
+        <summary>Show the exact source that will be deployed</summary>
+        <pre id="source"></pre>
+      </details>
+    </section>
+
+    <section>
+      <h2>3 · Connect (no signature)</h2>
+      <p>Asks MetaMask for an account, switches it to chain 4221 (adds Bradbury if missing), checks that the wallet's chain has the same recent block as Bradbury's RPC, and that Bradbury's consensus contracts really have code on chain.</p>
+      <button id="connect" type="button" disabled>Connect wallet</button>
+      <p id="wallet-state"></p>
+    </section>
+
+    <section>
+      <h2>4 · Deploy (one signature)</h2>
+      <label class="confirm"><input id="confirm" type="checkbox"> I have checked the source SHA-256 above, that the network is Bradbury (testnet), and that MetaMask's "to" is <code>0x0112Bf6e83497965A5fdD6Dad1E447a6E004271D</code>.</label>
+      <button id="deploy" type="button" disabled>Deploy — opens MetaMask</button>
+      <p class="hint">Faucet funding stays manual. One deploy per Connect. The page waits up to 20 minutes for consensus, then reads the address from the receipt's recipient and reads the code back from chain.</p>
+    </section>
+
+    <section>
+      <h2>5 · Log</h2>
+      <ol id="log"></ol>
+    </section>
+
+    <section>
+      <h2>6 · Record (paste into the ODIR record)</h2>
+      <button id="copy" type="button" disabled>Copy record</button>
+      <pre id="record">No deploy yet.</pre>
+      <p>Re-check the code at an address (reads only, no wallet):</p>
+      <input id="recheck-address" type="text" spellcheck="false" autocomplete="off" placeholder="0x…">
+      <button id="recheck" type="button">Re-check code</button>
+    </section>
+  </main>
+  <script type="module" src="dist/app.js"></script>
+</body>
+</html>
