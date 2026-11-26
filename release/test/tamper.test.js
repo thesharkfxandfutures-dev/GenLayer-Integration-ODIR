@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { makeRelease, makeSchemaLoader, ReleaseError } from '../src/runtime.js';
 import { stableJson } from '../src/assemble.js';
-import { OUTPUTS, importText, sha256 } from '../src/build.js';
+import { OUTPUTS, importText, releaseNotes, sha256, termsHashesOf } from '../src/build.js';
 import { gitSource } from '../src/gitsource.js';
 import { verifyRelease } from '../src/verify.js';
 import { sha256Hex } from '../src/sha256.js';
@@ -56,6 +56,8 @@ test('one changed word in an embedded template: every layer catches it, and getB
   assert.notEqual(bad, bundle);
   const B = await importText(bad);
   assert.throws(() => B.getBase('P2P'), (e) => e instanceof B.ReleaseError && /whole-file sha256 does not match/.test(e.message) && /template hash does not match/.test(e.message));
+  assert.throws(() => B.getBase('P2P'), B.ReleaseError); // a failed check is never cached
+  assert.throws(() => B.templateText(p2p.path), B.ReleaseError);
   assert.equal(B.getBase('B2P').key, 'B2P'); // the untouched template is still handed out
   const v = B.verifyRelease();
   assert.equal(v.ok, false);
@@ -82,9 +84,14 @@ test('a tamper that also rewrites the recorded hashes, the manifest and SHA256SU
   const B = await importText(bad);
   assert.deepEqual(B.verifyRelease(), { ok: true, problems: [] }); // self-consistent, so the bundle alone cannot tell
   const files = consistent(bad);
+  assert.match((await verifyRelease(files)).problems.join('\n'), /different templates or hashes/);
   const m = JSON.parse(files[OUTPUTS.manifest]);
   m.templates = B.listTemplates();
   files[OUTPUTS.manifest] = `${stableJson(m)}\n`;
+  assert.match((await verifyRelease(files)).problems.join('\n'), /terms hashes are not the ones the bundle computes/);
+  m.terms_hashes = termsHashesOf(B).termsHashes;
+  files[OUTPUTS.manifest] = `${stableJson(m)}\n`;
+  files[OUTPUTS.notes] = releaseNotes(m);
   files[OUTPUTS.sums] = [OUTPUTS.notes, OUTPUTS.manifest, OUTPUTS.bundle].sort().map((f) => `${sha256(files[f])}  ${f}\n`).join('');
   assert.deepEqual((await verifyRelease(files)).problems, []); // ...nor the files alone
   const r = await verifyRelease(files, { rebuildSource });
@@ -100,6 +107,33 @@ test('a manifest that names other hashes, or another release, is caught', async 
   const m2 = JSON.parse(outputs[OUTPUTS.manifest]);
   m2.commit = 'f'.repeat(40);
   assert.match((await verifyRelease({ ...outputs, [OUTPUTS.manifest]: `${stableJson(m2)}\n` })).problems.join('\n'), /name different releases/);
+});
+
+test('a manifest that is not an object, or not odir.template-release.v1, fails closed', async () => {
+  for (const bad of ['null', '[]', '5', '"x"', '{}']) {
+    const r = await verifyRelease({ ...outputs, [OUTPUTS.manifest]: `${bad}\n` });
+    assert.equal(r.ok, false, bad);
+    assert.match(r.problems.join('\n'), /not an object|missing schema/, bad);
+  }
+});
+
+test('without a rebuild, the notes, the terms hashes, the sources and the schemas are still checked against the bundle', async () => {
+  const resum = (files) => ({ ...files, [OUTPUTS.sums]: [OUTPUTS.notes, OUTPUTS.manifest, OUTPUTS.bundle].sort().map((f) => `${sha256(files[f])}  ${f}\n`).join('') });
+  const notes = resum({ ...outputs, [OUTPUTS.notes]: outputs[OUTPUTS.notes].replace('not legal advice', 'legal advice') });
+  assert.match((await verifyRelease(notes)).problems.join('\n'), /RELEASE_NOTES\.md: is not the notes this manifest gives/);
+  const edit = async (change, re) => {
+    const m = JSON.parse(outputs[OUTPUTS.manifest]);
+    change(m);
+    const files = resum({ ...outputs, [OUTPUTS.manifest]: `${stableJson(m)}\n`, [OUTPUTS.notes]: releaseNotes(m) });
+    assert.match((await verifyRelease(files)).problems.join('\n'), re);
+  };
+  await edit((m) => { m.terms_hashes['base.none.P2P.EW.business'] = `sha256:${'1'.repeat(64)}`; }, /terms hashes are not the ones the bundle computes/);
+  await edit((m) => { m.terms_hashes.extra = 'nope'; }, /terms_hashes\.extra is not a sha256: hash/);
+  await edit((m) => { m.sources[0].file_sha256 = '2'.repeat(64); }, /different source files/);
+  await edit((m) => { m.schemas.pop(); }, /different schema files/);
+  await edit((m) => { m.notice = 'Final.'; }, /different notices/);
+  const dup = `${outputs[OUTPUTS.sums]}${outputs[OUTPUTS.sums].split('\n')[0]}\n`;
+  assert.match((await verifyRelease({ ...outputs, [OUTPUTS.sums]: dup })).problems.join('\n'), /lists .* twice/);
 });
 
 test('SHA256SUMS must list exactly the three files; a missing file is reported', async () => {
@@ -123,6 +157,7 @@ test('runtime on its own: tampered file text, a wrong key or version, a tampered
   assert.match(makeRelease(data({ ...file, key: 'B2P' }), B).verifyRelease().problems.join(), /holds P2P, the release lists B2P/);
   assert.match(makeRelease(data({ ...file, sha256: 'h:other' }), B).verifyRelease().problems.join(), /template hash does not match/);
   assert.match(makeRelease({ release: {}, files: [file, { ...file }] }, B).verifyRelease().problems.join(), /listed twice/);
+  assert.match(makeRelease({ release: {}, files: [file, { ...file, path: 'templates/bases/p2p-copy.json' }] }, B).verifyRelease().problems.join(), /two base files share a key/);
   const wrongSchema = '{"schema":"m","key":"P2P","version":1}';
   assert.match(makeRelease(data({ ...file, text: wrongSchema, file_sha256: sha256Hex(wrongSchema) }), B).verifyRelease().problems.join(), /schema m, expected b/);
   const schema = { path: 'schema/agreement.v1.json', kind: 'schema', file_sha256: sha256Hex('{}'), text: '{"x":1}' };

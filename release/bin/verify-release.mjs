@@ -13,8 +13,14 @@ import { gitSource } from '../src/gitsource.js';
 import { verifyRelease } from '../src/verify.js';
 
 const args = process.argv.slice(2);
-const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] ?? null : null; };
 const usage = (msg) => { process.stderr.write(`${msg}\nusage: verify-release.mjs --dir <folder> [--rebuild (--tag <tag> | --ref <rev>)] [--root <repo>]\n`); process.exit(2); };
+const opt = (name) => {
+  const i = args.indexOf(name);
+  if (i < 0) return null;
+  const v = args[i + 1];
+  if (v === undefined || v.startsWith('--')) usage(`${name} needs a value`);
+  return v;
+};
 
 const dir = opt('--dir');
 if (!dir) usage('--dir is required');
@@ -29,7 +35,9 @@ for (const name of Object.values(OUTPUTS)) {
   const p = path.join(dir, name);
   if (fs.existsSync(p)) files[name] = fs.readFileSync(p, 'utf8');
 }
-const { ok, problems, manifest } = await verifyRelease(files, { rebuildSource });
+let result;
+try { result = await verifyRelease(files, { rebuildSource }); } catch (e) { result = { ok: false, problems: [`${e.name}: ${e.message}`] }; }
+const { ok, problems, manifest } = result;
 for (const p of problems) process.stdout.write(`FAIL ${p}\n`);
 if (ok) process.stdout.write(`ok   release ${manifest.tag ?? '(untagged)'} at ${manifest.commit}: ${manifest.templates.length} templates, bundle ${manifest.bundle.sha256}${rebuildSource ? ', rebuild byte-identical' : ''}\n`);
 process.exit(ok ? 0 : 1);

@@ -15,8 +15,11 @@ A release turns one tagged commit into four files. SnapLink imports the first in
 ## How it stays honest
 
 - **Reproducible.** The build reads git objects at the commit (`git cat-file`), never the working
-  tree. No clock, no randomness, no file order, LF only, keys sorted. The same tag gives the same
-  bytes on any machine; CI builds twice and compares.
+  tree, ignoring `git replace` refs and any `GIT_*` setting. No clock, no randomness, no file order,
+  LF only, keys sorted. The same tag gives the same bytes on any machine; CI builds twice and compares.
+- **Built by its own tooling.** The build scripts run from the checkout, so they must be
+  byte-identical to the same files at the commit being built; a dirty checkout, or newer tooling
+  building an older tag, is refused. Build a tag from a clean checkout of that tag (the workflow does).
 - **Self-computed hashes.** A first pass imports a probe bundle, so every template hash in the
   release is computed by the very code the release ships.
 - **Golden-checked.** The finished bundle must reproduce every terms hash in
@@ -28,7 +31,9 @@ A release turns one tagged commit into four files. SnapLink imports the first in
 - **Tamper checks, in layers.**
   1. In the bundle: `getBase` / `getModule` check the template's whole-file sha256 (any change,
      style too) and its template hash (any word) and refuse on a mismatch. `verifyRelease()` checks all.
-  2. Across the files: `SHA256SUMS`, the manifest's bundle sha256 and its template list.
+  2. Across the files: `SHA256SUMS` (no duplicates), the manifest (schema-checked; its bundle
+     sha256, templates, schemas, sources and notice equal to the bundle's; its terms hashes equal
+     to the ones the bundle computes) and `RELEASE_NOTES.md` (exactly what the manifest gives).
   3. Against the tag: `verify-release --rebuild` rebuilds from the tag and compares bytes. This is
      the only check that catches a tamper which rewrote every recorded hash consistently, so the
      importer (D1) must rebuild, or compare with the release the owner published on GitHub.
@@ -36,7 +41,7 @@ A release turns one tagged commit into four files. SnapLink imports the first in
 ## Commands
 
 ```bash
-cd release && npm test                                                  # 45 tests (temp repositories only)
+cd release && npm test                                                  # all tests (temp repositories only)
 node release/bin/build-release.mjs --ref HEAD --out /tmp/r              # untagged check build (what CI runs)
 node release/bin/build-release.mjs --tag templates-v1.0.0 --out dist    # a tagged release
 node release/bin/verify-release.mjs --dir dist --rebuild --tag templates-v1.0.0

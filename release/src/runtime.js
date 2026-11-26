@@ -80,6 +80,8 @@ export function makeRelease(data, { sha256Hex, templateHash, assertBase, assertM
   return Object.freeze({
     RELEASE: data.release,
     // Every template in the release with its hashes (no text).
+    // The embedded schema files with their whole-file sha256.
+    listSchemas: () => files.filter((f) => f.kind === 'schema').map(({ path, file_sha256 }) => ({ path, file_sha256 })),
     listTemplates: () => files.filter((f) => f.kind !== 'schema')
       .map(({ path, kind, key, version, sha256, file_sha256 }) => ({ path, kind, key, version, sha256, file_sha256 })),
     // The exact file text, for an importer that writes it out or hashes it again.

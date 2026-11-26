@@ -82,6 +82,8 @@ test('templates handed out are frozen and verified; listTemplates and templateTe
   assert.throws(() => B.getModule('drone_pilot'), /no role module "drone_pilot"/);
   assert.throws(() => B.templateText('schema/agreement.v1.json'), /no template/);
   assert.ok(Object.isFrozen(B.RELEASE));
+  assert.deepEqual(B.listSchemas().map((s) => s.path), ['schema/agreement.v1.json', 'schema/base-template.v1.json', 'schema/role-template.v1.json']);
+  assert.deepEqual(B.RELEASE.sources.map((s) => s.path), manifest.sources.map((s) => s.path));
   assert.deepEqual(B.verifyRelease(), { ok: true, problems: [] });
 });
 

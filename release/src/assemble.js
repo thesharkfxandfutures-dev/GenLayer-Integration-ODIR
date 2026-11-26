@@ -57,7 +57,7 @@ export const PUBLIC = Object.freeze({
   render: ['renderMarkdown', 'toParchment'],
   runtime: ['ReleaseError'],
 });
-export const RELEASE_API = Object.freeze(['getBase', 'getModule', 'listTemplates', 'templateText', 'verifyRelease']);
+export const RELEASE_API = Object.freeze(['getBase', 'getModule', 'listSchemas', 'listTemplates', 'templateText', 'verifyRelease']);
 
 const IDENT = /^[A-Za-z_$][\w$]*$/;
 const IMPORT = /^import\s+(?:([A-Za-z_$][\w$]*)|\{([^}]*)\})\s+from\s+'([^']+)';[ \t]*\n/gm;
@@ -140,7 +140,7 @@ export const DATA_END = '// ── end of data ──';
 
 /**
  * assembleBundle({ release, files, sources, sourceHashes })
- *   release:  { schema, tag, commit, notice }
+ *   release:  { schema, tag, commit, notice, sources: [{ path, file_sha256 }] }
  *   files:    [{ path, kind: 'base'|'module'|'schema', key, version, sha256, file_sha256, text }]
  *   sources:  Map path → text for every MODULES path
  *   sourceHashes: Map path → whole-file sha256 (hex)
@@ -182,7 +182,7 @@ export function assembleBundle({ release, files, sources, sourceHashes }) {
     '// Role-contract templates, their hashes, and the resolver and hash code as one ES module with no',
     '// imports. Drafts, not legal advice: a UK solicitor reviews the templates before any real member signs.',
     '//',
-    '// Exports: RELEASE, getBase, getModule, listTemplates, templateText, verifyRelease, resolve, the hash',
+    '// Exports: RELEASE, getBase, getModule, listTemplates, listSchemas, templateText, verifyRelease, resolve, the hash',
     '// functions (templateHash, termsHash, …), toParchment, renderMarkdown and the fixed vocabulary.',
     '// getBase / getModule refuse a template whose whole-file sha256 or template hash does not match.',
     '',

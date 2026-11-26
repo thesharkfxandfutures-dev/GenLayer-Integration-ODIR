@@ -42,6 +42,8 @@ test('verify-release exits 1 on a tampered bundle; build-release exits 1 when re
   assert.equal(runNode([BUILD, '--ref', 'HEAD', '--root', dir]).code, 2);
   assert.equal(runNode([BUILD, '--tag', 'v1', '--out', out, '--root', dir]).code, 2);
   assert.equal(runNode([VERIFY, '--root', dir]).code, 2);
+  assert.equal(runNode([BUILD, '--out', '--ref', 'HEAD', '--root', dir]).code, 2);
+  assert.equal(runNode([VERIFY, '--dir', out, '--rebuild', '--ref', '-n1', '--root', dir]).code, 2);
 });
 
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');

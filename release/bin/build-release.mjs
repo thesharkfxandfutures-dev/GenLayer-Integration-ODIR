@@ -5,6 +5,7 @@
 //   [--root <repo>]  the repository to read (default: this one)
 // Writes odir-templates.mjs, odir-templates.manifest.json, RELEASE_NOTES.md and SHA256SUMS.
 // Exit 0 built · 1 refused (the problems are printed) · 2 usage.
+// Build a tag from a clean checkout of that tag: the tooling must equal the commit it builds.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,8 +13,14 @@ import { OUTPUTS, ReleaseBuildError, buildRelease } from '../src/build.js';
 import { gitSource } from '../src/gitsource.js';
 
 const args = process.argv.slice(2);
-const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] ?? null : null; };
 const usage = (msg) => { process.stderr.write(`${msg}\nusage: build-release.mjs (--tag templates-vX.Y.Z | --ref <rev>) --out <dir> [--root <repo>]\n`); process.exit(2); };
+const opt = (name) => {
+  const i = args.indexOf(name);
+  if (i < 0) return null;
+  const v = args[i + 1];
+  if (v === undefined || v.startsWith('--')) usage(`${name} needs a value`);
+  return v;
+};
 
 const out = opt('--out');
 if (!out) usage('--out is required');
@@ -32,7 +39,6 @@ try {
   process.stdout.write(`${OUTPUTS.bundle}  sha256 ${manifest.bundle.sha256}  ${manifest.bundle.bytes} bytes\n`);
   process.stdout.write(outputs[OUTPUTS.sums]);
 } catch (e) {
-  if (!(e instanceof ReleaseBuildError)) throw e;
-  process.stdout.write(`REFUSED ${e.message}\n`);
+  process.stdout.write(`REFUSED ${e instanceof ReleaseBuildError ? e.message : `${e.name}: ${e.message}`}\n`);
   process.exit(1);
 }

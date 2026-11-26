@@ -9,7 +9,14 @@
 // The hashes in the bundle are computed by the bundled code itself (a first pass imports a probe
 // bundle), and the finished bundle must reproduce every golden terms hash committed at the same
 // commit (resolver/test/golden/hashes.json) — a template edited without its golden diff is refused.
+//
+// The build tooling (this file and what it imports, read from the checkout that runs it) must be
+// byte-identical to the same files at the commit being built, so a dirty checkout, or newer tooling
+// building an older tag, is refused instead of giving other bytes. Build a tag from its own checkout.
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { combinations, comboName } from '../../resolver/src/load.js';
 import { AssembleError, MODULES, SCHEMA_FILES, assembleBundle, stableJson } from './assemble.js';
 
@@ -32,6 +39,50 @@ export class ReleaseBuildError extends Error {
 
 export const sha256 = (data) => crypto.createHash('sha256').update(typeof data === 'string' ? Buffer.from(data, 'utf8') : data).digest('hex');
 export const importText = (text) => import(`data:text/javascript;base64,${Buffer.from(text, 'utf8').toString('base64')}`);
+
+// The tooling a build runs from the checkout: its own files and everything they import.
+export const TOOLING = Object.freeze([
+  'release/src/assemble.js', 'release/src/build.js', 'release/src/gitsource.js', 'release/src/verify.js',
+  'release/bin/build-release.mjs', 'release/bin/verify-release.mjs',
+  'resolver/src/load.js', 'resolver/src/categories.js', 'resolver/src/validate.js', 'brain/src/jsonschema.js',
+  'schema/template-release.v1.json',
+]);
+export const TOOLING_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+
+function toolingProblems(source) {
+  const out = [];
+  for (const p of TOOLING) {
+    let atCommit;
+    try { atCommit = source.read(p); } catch { out.push(`${p}: not in commit ${source.commit} — this commit has no release tooling`); continue; }
+    let here;
+    try { here = fs.readFileSync(path.join(TOOLING_ROOT, p), 'utf8'); } catch { out.push(`${p}: missing from the checkout running the build`); continue; }
+    if (here !== atCommit) out.push(`${p}: the checkout running the build differs from commit ${source.commit} — build from a clean checkout of that commit`);
+  }
+  return out;
+}
+
+// The terms hash of every role × base combination of the bundle's templates (template mode).
+export function termsHashesOf(bundle) {
+  const problems = [];
+  const bases = new Map();
+  const modules = new Map();
+  for (const t of bundle.listTemplates()) {
+    if (t.kind === 'base') bases.set(t.key, bundle.getBase(t.key)); else modules.set(t.key, bundle.getModule(t.key));
+  }
+  const { combos, skipped } = combinations({ bases, modules });
+  const termsHashes = {};
+  for (const c of combos) {
+    const name = comboName(c);
+    try {
+      termsHashes[name] = bundle.resolve({
+        base: bases.get(c.base), engager: c.engager ? modules.get(c.engager) : null, provider: c.provider ? modules.get(c.provider) : null,
+        jurisdiction: c.jurisdiction, consumer: c.consumer,
+      }).terms_hash;
+    } catch (e) { problems.push(`${name}: ${e.message}`); }
+  }
+  for (const s of skipped) problems.push(`${s.role}.${s.slot}.${s.base}: ${s.reason}`);
+  return { termsHashes, problems };
+}
 
 const BASE_FILE = /^templates\/bases\/([a-z0-9]+)\.json$/;
 const MODULE_FILE = /^templates\/roles\/([a-z][a-z0-9_]*)\/module\.json$/;
@@ -63,7 +114,8 @@ function readTemplates(source, problems) {
 export async function buildRelease(source) {
   const problems = [];
   if (!/^[0-9a-f]{40}$/.test(source.commit)) throw new ReleaseBuildError(`commit must be a full sha, not ${JSON.stringify(source.commit)}`);
-  const release = { schema: RELEASE_SCHEMA, tag: source.tag ?? null, commit: source.commit, notice: NOTICE };
+  const tooling = toolingProblems(source);
+  if (tooling.length) throw new ReleaseBuildError('the build tooling is not the tooling of the commit being built', tooling);
   const templates = readTemplates(source, problems);
   const schemas = SCHEMA_FILES.map((path) => {
     const text = source.read(path);
@@ -72,6 +124,10 @@ export async function buildRelease(source) {
   });
   const sources = new Map(MODULES.map((m) => [m.path, source.read(m.path)]));
   const sourceHashes = new Map([...sources].map(([p, t]) => [p, sha256(t)]));
+  const release = {
+    schema: RELEASE_SCHEMA, tag: source.tag ?? null, commit: source.commit, notice: NOTICE,
+    sources: MODULES.map((m) => ({ path: m.path, file_sha256: sourceHashes.get(m.path) })),
+  };
   if (problems.length) throw new ReleaseBuildError('the templates at this commit cannot be released', problems);
 
   const assemble = (files) => {
@@ -96,22 +152,9 @@ export async function buildRelease(source) {
   const check = bundle.verifyRelease();
   if (!check.ok) throw new ReleaseBuildError('the assembled bundle does not verify', check.problems);
 
-  const bases = new Map();
-  const modules = new Map();
-  for (const t of bundle.listTemplates()) {
-    if (t.kind === 'base') bases.set(t.key, bundle.getBase(t.key)); else modules.set(t.key, bundle.getModule(t.key));
-  }
-  const { combos, skipped } = combinations({ bases, modules });
-  const termsHashes = {};
-  for (const c of combos) {
-    const name = comboName(c);
-    try {
-      termsHashes[name] = bundle.resolve({
-        base: bases.get(c.base), engager: c.engager ? modules.get(c.engager) : null, provider: c.provider ? modules.get(c.provider) : null,
-        jurisdiction: c.jurisdiction, consumer: c.consumer,
-      }).terms_hash;
-    } catch (e) { problems.push(`${name}: ${e.message}`); }
-  }
+  const derived = termsHashesOf(bundle);
+  const { termsHashes } = derived;
+  problems.push(...derived.problems);
   let golden = null;
   try { golden = JSON.parse(source.read(GOLDEN)); } catch (e) { problems.push(`${GOLDEN}: ${e.message}`); }
   if (golden) {
@@ -121,7 +164,6 @@ export async function buildRelease(source) {
     }
     for (const name of Object.keys(golden)) if (!Object.hasOwn(termsHashes, name)) problems.push(`${name}: in the golden file but not a combination of these templates`);
   }
-  for (const s of skipped) problems.push(`${s.role}.${s.slot}.${s.base}: ${s.reason}`);
   if (problems.length) throw new ReleaseBuildError('the bundle does not reproduce the committed golden terms hashes', problems);
 
   const manifest = {
@@ -131,8 +173,8 @@ export async function buildRelease(source) {
     notice: NOTICE,
     bundle: { file: OUTPUTS.bundle, sha256: sha256(bundleText), bytes: Buffer.byteLength(bundleText, 'utf8') },
     templates: bundle.listTemplates(),
-    schemas: schemas.map(({ path, file_sha256 }) => ({ path, file_sha256 })),
-    sources: MODULES.map((m) => ({ path: m.path, file_sha256: sourceHashes.get(m.path) })),
+    schemas: bundle.listSchemas(),
+    sources: release.sources,
     terms_hashes: termsHashes,
   };
   const manifestText = `${stableJson(manifest)}\n`;
