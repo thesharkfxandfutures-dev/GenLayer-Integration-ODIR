@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // CI gate: every schema in schema/ parses as JSON, and the schemas checked by brain/src/jsonschema.js
-// (the Brain's own and the A3 template schemas) use only keywords it enforces, so no rule is
+// (the Brain's own, the A3 template schemas and the A4 release manifest) use only keywords it enforces, so no rule is
 // silently ignored.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -11,6 +11,7 @@ const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 
 const ENFORCED = new Set([
   'inspector-snapshot.v1.json', 'brain-run.v1.json',
   'base-template.v1.json', 'role-template.v1.json', 'agreement.v1.json',
+  'template-release.v1.json',
 ]);
 let bad = 0;
 for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.json')).sort()) {

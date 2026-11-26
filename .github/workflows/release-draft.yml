@@ -1,0 +1,62 @@
+# Draft release of the role-contract templates (slice A4).
+# Runs only when the owner pushes a tag templates-vX.Y.Z on a commit that is on main. It runs the
+# template and release tests, builds the bundle twice from the tag (byte-identical), verifies it
+# with a third, independent rebuild, and opens a DRAFT release with the four files. The owner reviews
+# the draft and publishes it; this workflow never publishes. SnapLink imports a published release
+# in slice D1.
+# No secrets beyond this job's own GITHUB_TOKEN, no keys, nothing deployed, no chain.
+name: release-draft
+
+on:
+  push:
+    tags:
+      - 'templates-v*'
+
+permissions:
+  contents: read
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # to create the draft release, nothing else
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: The tag is templates-vX.Y.Z on a commit that is on main
+        run: |
+          [[ "$TAG" =~ ^templates-v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || { echo "tag $TAG is not templates-vX.Y.Z"; exit 1; }
+          git merge-base --is-ancestor "$(git rev-parse "refs/tags/$TAG^{commit}")" origin/main || { echo "tag $TAG is not on main"; exit 1; }
+      - name: Template and release tests
+        run: |
+          (cd resolver && npm test)
+          (cd release && npm test)
+      - name: Build twice from the tag — the bytes must be identical
+        run: |
+          node release/bin/build-release.mjs --tag "$TAG" --out "$RUNNER_TEMP/dist"
+          node release/bin/build-release.mjs --tag "$TAG" --out "$RUNNER_TEMP/dist2"
+          diff -r "$RUNNER_TEMP/dist" "$RUNNER_TEMP/dist2"
+      - name: Verify, with a rebuild from the tag
+        run: |
+          node release/bin/verify-release.mjs --dir "$RUNNER_TEMP/dist" --rebuild --tag "$TAG"
+          (cd "$RUNNER_TEMP/dist" && sha256sum -c SHA256SUMS)
+      - name: Open a DRAFT release (the owner reviews and publishes it)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release create "$TAG" --draft --verify-tag \
+            --title "Role-contract templates $TAG (draft — not legal advice)" \
+            --notes-file "$RUNNER_TEMP/dist/RELEASE_NOTES.md" \
+            "$RUNNER_TEMP/dist/odir-templates.mjs" \
+            "$RUNNER_TEMP/dist/odir-templates.manifest.json" \
+            "$RUNNER_TEMP/dist/RELEASE_NOTES.md" \
+            "$RUNNER_TEMP/dist/SHA256SUMS"

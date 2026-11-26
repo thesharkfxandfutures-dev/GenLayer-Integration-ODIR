@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/thesharkfxandfutures-dev/genlayer-integration-odir/schema/template-release.v1.json",
+  "title": "odir.template-release.v1 — the manifest of one template release (odir-templates.manifest.json)",
+  "description": "Written by release/bin/build-release.mjs (slice A4) next to the bundle odir-templates.mjs. Lists every template with its template hash (style left out) and its whole-file sha256, the embedded schema files, the bundled source files, the bundle's own sha256, and the terms hash of every role x base combination (each equal to the golden file at the same commit). SnapLink's importer (slice D1) checks a release against it. terms_hashes is a map from combination name to hash; its values are checked by the importer, as this validator has no patternProperties.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "tag", "commit", "notice", "bundle", "templates", "schemas", "sources", "terms_hashes"],
+  "properties": {
+    "schema": { "const": "odir.template-release.v1" },
+    "tag": { "type": ["string", "null"], "pattern": "^templates-v(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$" },
+    "commit": { "$ref": "#/$defs/sha1" },
+    "notice": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "bundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "sha256", "bytes"],
+      "properties": {
+        "file": { "const": "odir-templates.mjs" },
+        "sha256": { "$ref": "#/$defs/hex256" },
+        "bytes": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "templates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "kind", "key", "version", "sha256", "file_sha256"],
+        "properties": {
+          "path": { "type": "string", "pattern": "^templates/(bases/[a-z0-9]+\\.json|roles/[a-z][a-z0-9_]*/module\\.json)$" },
+          "kind": { "enum": ["base", "module"] },
+          "key": { "type": "string", "pattern": "^([A-Z0-9]+|[a-z][a-z0-9_]*)$" },
+          "version": { "type": "integer", "minimum": 1 },
+          "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+          "file_sha256": { "$ref": "#/$defs/hex256" }
+        }
+      }
+    },
+    "schemas": { "$ref": "#/$defs/fileList" },
+    "sources": { "$ref": "#/$defs/fileList" },
+    "terms_hashes": { "type": "object" }
+  },
+  "$defs": {
+    "sha1": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "hex256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "fileList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "file_sha256"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "file_sha256": { "$ref": "#/$defs/hex256" }
+        }
+      }
+    }
+  }
+}
